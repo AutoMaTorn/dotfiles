@@ -119,12 +119,12 @@ else
 fi
 
 # ============================================
-# Install manual apps listed in packages.txt
+# Install 3rd-party APT packages
 # ============================================
-MANUAL_PKGS=$(get_section "manual" | tr '\n' ' ')
+APT_PKGS_LIST=$(get_section "apt" | tr '\n' ' ')
 
 # Yandex Browser
-if echo "$MANUAL_PKGS" | grep -qw "yandex-browser-stable"; then
+if echo "$APT_PKGS_LIST" | grep -qw "yandex-browser-stable"; then
     if ! command -v yandex-browser &> /dev/null && ! command -v yandex-browser-stable &> /dev/null; then
         info "Installing Yandex Browser..."
         wget -qO - https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG | sudo gpg --dearmor -o /usr/share/keyrings/yandex-browser.gpg
@@ -133,33 +133,6 @@ if echo "$MANUAL_PKGS" | grep -qw "yandex-browser-stable"; then
         sudo apt-get install -y yandex-browser-stable
     else
         info "Yandex Browser already installed."
-    fi
-fi
-
-# v2rayN
-if echo "$MANUAL_PKGS" | grep -qw "v2rayN"; then
-    if [ ! -d "$HOME/Apps/v2rayN" ]; then
-        info "Installing v2rayN..."
-        mkdir -p "$HOME/Apps"
-        V2RAY_URL=$(curl -sL https://api.github.com/repos/2dust/v2rayN/releases/latest | grep -oP '"browser_download_url": "\K[^"]*linux-x64\.zip' | head -n 1)
-        if [ -n "$V2RAY_URL" ]; then
-            wget -q "$V2RAY_URL" -O /tmp/v2rayN.zip
-            unzip -q /tmp/v2rayN.zip -d "$HOME/Apps/v2rayN"
-            rm -f /tmp/v2rayN.zip
-            mkdir -p "$HOME/.local/share/applications"
-            cat > "$HOME/.local/share/applications/v2rayN.desktop" << 'EOF'
-[Desktop Entry]
-Name=v2rayN
-Exec=/bin/bash -c "cd $HOME/Apps/v2rayN && ./v2rayN"
-Icon=applications-internet
-Type=Application
-Categories=Network;
-EOF
-        else
-            warn "Could not find v2rayN Linux release. Please install manually."
-        fi
-    else
-        info "v2rayN already installed."
     fi
 fi
 
@@ -196,6 +169,8 @@ if [ -f "$DOTFILES_DIR/.config/picom.conf" ]; then
 fi
 
 backup_and_link "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
+backup_and_link "$DOTFILES_DIR/zsh/.zprofile" "$HOME/.zprofile"
+backup_and_link "$DOTFILES_DIR/.xinitrc" "$HOME/.xinitrc"
 
 # ============================================
 # Install Oh My Zsh
@@ -249,6 +224,6 @@ echo -e "${GREEN}============================================${NC}"
 echo ""
 echo "Next steps:"
 echo "  1. Log out and log back in (or reboot)."
-echo "  2. Run 'startx' to launch i3, or select i3 from your display manager."
+echo "  2. i3 will start automatically when you log into tty1."
 echo ""
 echo "You can edit $DOTFILES_DIR/packages.txt and rerun this script to install additional packages."

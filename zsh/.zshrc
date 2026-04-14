@@ -19,3 +19,5 @@ fastfetch
 
 export PATH=$PATH:/home/torn/.spicetify
 export PATH=$PATH:~/.spicetify
+
+. "$HOME/.local/bin/env"

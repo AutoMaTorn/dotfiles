@@ -1,3 +1,4 @@
+[apt]
 # Window manager & bar
 i3
 polybar
@@ -40,3 +41,16 @@ unzip
 
 # Fonts
 fonts-noto-color-emoji
+
+# Browsers (3rd-party apt repo)
+yandex-browser-stable
+xinit
+
+[flatpak]
+# Add flatpak apps here, one per line
+org.telegram.desktop
+com.spotify.Client
+
+[manual]
+# This section is intentionally left empty.
+# All apps should be installed via apt or flatpak only.
