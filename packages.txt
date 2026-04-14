@@ -1,5 +1,5 @@
 # Window manager & bar
-i3wm
+i3
 polybar
 
 # Launcher & terminal
@@ -13,6 +13,7 @@ feh
 # Audio
 pipewire
 pipewire-pulse
+pulseaudio-utils
 wireplumber
 
 # Network & Bluetooth
