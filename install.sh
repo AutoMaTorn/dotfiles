@@ -6,7 +6,7 @@ set -e
 # ============================================
 
 DOTFILES_DIR="$HOME/dotfiles"
-REPO_URL="https://github.com/automatorn/dotfiles"
+REPO_URL="https://github.com/automatorn/dotfiles.git"
 FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip"
 FONT_DIR="$HOME/.local/share/fonts"
 
