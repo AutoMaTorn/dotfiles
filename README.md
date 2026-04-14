@@ -20,7 +20,7 @@ cd ~/dotfiles
 ./install.sh
 ```
 
-> **Примечание:** установщик также поставит `Discord`, `Yandex Browser`, `Spotify`, `Telegram`, `v2rayN` и настроит `Flatpak`.
+> **Примечание:** установщик также поставит `Yandex Browser`, `Spotify`, `Telegram`, `v2rayN` и настроит `Flatpak`.
 
 ---
 

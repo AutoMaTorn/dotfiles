@@ -29,6 +29,33 @@ error() {
 }
 
 # ============================================
+# Helper: extract section from packages.txt
+# ============================================
+get_section() {
+    local section="$1"
+    local file="$DOTFILES_DIR/packages.txt"
+    local in_section=false
+
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        line="$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+        if [[ "$line" == "[$section]" ]]; then
+            in_section=true
+            continue
+        fi
+
+        if [[ "$line" == \[*\] ]]; then
+            in_section=false
+            continue
+        fi
+
+        if $in_section && [[ -n "$line" ]] && [[ ! "$line" =~ ^# ]]; then
+            echo "$line"
+        fi
+    done < "$file"
+}
+
+# ============================================
 # OS Check
 # ============================================
 if ! grep -qiE "debian|ubuntu" /etc/os-release 2>/dev/null; then
@@ -62,73 +89,65 @@ fi
 cd "$DOTFILES_DIR"
 
 # ============================================
-# Install packages from packages.txt
+# Install APT packages
 # ============================================
-if [ -f "$DOTFILES_DIR/packages.txt" ]; then
+APT_PKGS=$(get_section "apt" | tr '\n' ' ')
+if [ -n "$APT_PKGS" ]; then
     info "Updating package list..."
     sudo apt-get update
 
-    info "Installing packages from packages.txt..."
-    PKGS=$(grep -v '^#' "$DOTFILES_DIR/packages.txt" | grep -v '^$' | tr '\n' ' ')
-    if [ -n "$PKGS" ]; then
-        sudo apt-get install -y $PKGS
-    fi
+    info "Installing APT packages..."
+    sudo apt-get install -y $APT_PKGS
 else
-    warn "packages.txt not found. Skipping package installation."
+    warn "No APT packages found in packages.txt"
 fi
 
 # ============================================
 # Setup Flatpak & Flathub
 # ============================================
-info "Setting up Flatpak..."
-sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+FLATPAK_PKGS=$(get_section "flatpak" | tr '\n' ' ')
+if [ -n "$FLATPAK_PKGS" ]; then
+    info "Setting up Flatpak & Flathub..."
+    sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 
-# ============================================
-# Install Flatpak apps
-# ============================================
-info "Installing Flatpak apps..."
-flatpak install -y flathub com.spotify.Client 2>/dev/null || warn "Spotify installation failed"
-flatpak install -y flathub org.telegram.desktop 2>/dev/null || warn "Telegram installation failed"
-
-# ============================================
-# Install Discord
-# ============================================
-if ! command -v discord &> /dev/null; then
-    info "Installing Discord..."
-    wget -q "https://discord.com/api/download?platform=linux&format=deb" -O /tmp/discord.deb
-    sudo apt-get install -y /tmp/discord.deb
-    rm -f /tmp/discord.deb
+    info "Installing Flatpak apps..."
+    for app in $FLATPAK_PKGS; do
+        sudo flatpak install -y --noninteractive flathub "$app" 2>/dev/null || warn "Failed to install flatpak: $app"
+    done
 else
-    info "Discord already installed."
+    warn "No Flatpak apps found in packages.txt"
 fi
 
 # ============================================
-# Install Yandex Browser
+# Install manual apps listed in packages.txt
 # ============================================
-if ! command -v yandex-browser &> /dev/null && ! command -v yandex-browser-stable &> /dev/null; then
-    info "Installing Yandex Browser..."
-    wget -qO - https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG | sudo gpg --dearmor -o /usr/share/keyrings/yandex-browser.gpg
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/yandex-browser.gpg] https://repo.yandex.ru/yandex-browser/deb stable main" | sudo tee /etc/apt/sources.list.d/yandex-browser.list > /dev/null
-    sudo apt-get update
-    sudo apt-get install -y yandex-browser-stable
-else
-    info "Yandex Browser already installed."
+MANUAL_PKGS=$(get_section "manual" | tr '\n' ' ')
+
+# Yandex Browser
+if echo "$MANUAL_PKGS" | grep -qw "yandex-browser-stable"; then
+    if ! command -v yandex-browser &> /dev/null && ! command -v yandex-browser-stable &> /dev/null; then
+        info "Installing Yandex Browser..."
+        wget -qO - https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG | sudo gpg --dearmor -o /usr/share/keyrings/yandex-browser.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/yandex-browser.gpg] https://repo.yandex.ru/yandex-browser/deb stable main" | sudo tee /etc/apt/sources.list.d/yandex-browser.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install -y yandex-browser-stable
+    else
+        info "Yandex Browser already installed."
+    fi
 fi
 
-# ============================================
-# Install v2rayN
-# ============================================
-if [ ! -d "$HOME/Apps/v2rayN" ]; then
-    info "Installing v2rayN..."
-    mkdir -p "$HOME/Apps"
-    V2RAY_URL=$(curl -sL https://api.github.com/repos/2dust/v2rayN/releases/latest | grep -oP '"browser_download_url": "\K[^"]*linux-x64\.zip' | head -n 1)
-    if [ -n "$V2RAY_URL" ]; then
-        wget -q "$V2RAY_URL" -O /tmp/v2rayN.zip
-        unzip -q /tmp/v2rayN.zip -d "$HOME/Apps/v2rayN"
-        rm -f /tmp/v2rayN.zip
-        # Create simple launcher
-        mkdir -p "$HOME/.local/share/applications"
-        cat > "$HOME/.local/share/applications/v2rayN.desktop" << 'EOF'
+# v2rayN
+if echo "$MANUAL_PKGS" | grep -qw "v2rayN"; then
+    if [ ! -d "$HOME/Apps/v2rayN" ]; then
+        info "Installing v2rayN..."
+        mkdir -p "$HOME/Apps"
+        V2RAY_URL=$(curl -sL https://api.github.com/repos/2dust/v2rayN/releases/latest | grep -oP '"browser_download_url": "\K[^"]*linux-x64\.zip' | head -n 1)
+        if [ -n "$V2RAY_URL" ]; then
+            wget -q "$V2RAY_URL" -O /tmp/v2rayN.zip
+            unzip -q /tmp/v2rayN.zip -d "$HOME/Apps/v2rayN"
+            rm -f /tmp/v2rayN.zip
+            mkdir -p "$HOME/.local/share/applications"
+            cat > "$HOME/.local/share/applications/v2rayN.desktop" << 'EOF'
 [Desktop Entry]
 Name=v2rayN
 Exec=/bin/bash -c "cd $HOME/Apps/v2rayN && ./v2rayN"
@@ -136,11 +155,12 @@ Icon=applications-internet
 Type=Application
 Categories=Network;
 EOF
+        else
+            warn "Could not find v2rayN Linux release. Please install manually."
+        fi
     else
-        warn "Could not find v2rayN Linux release. Please install manually."
+        info "v2rayN already installed."
     fi
-else
-    info "v2rayN already installed."
 fi
 
 # ============================================
