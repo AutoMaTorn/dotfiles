@@ -123,14 +123,20 @@ fi
 # ============================================
 APT_PKGS_LIST=$(get_section "apt" | tr '\n' ' ')
 
-# Yandex Browser
+# Yandex Browser (fallback to Firefox)
 if echo "$APT_PKGS_LIST" | grep -qw "yandex-browser-stable"; then
     if ! command -v yandex-browser &> /dev/null && ! command -v yandex-browser-stable &> /dev/null; then
         info "Installing Yandex Browser..."
         wget -qO - https://repo.yandex.ru/yandex-browser/YANDEX-BROWSER-KEY.GPG | sudo gpg --dearmor -o /usr/share/keyrings/yandex-browser.gpg
         echo "deb [arch=amd64 signed-by=/usr/share/keyrings/yandex-browser.gpg] https://repo.yandex.ru/yandex-browser/deb stable main" | sudo tee /etc/apt/sources.list.d/yandex-browser.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install -y yandex-browser-stable
+        info "Updating apt for Yandex Browser repository..."
+        sudo apt-get update || warn "apt-get update failed for Yandex repo"
+        if sudo apt-get install -y yandex-browser-stable; then
+            info "Yandex Browser installed successfully."
+        else
+            warn "Failed to install yandex-browser-stable. Installing Firefox as fallback..."
+            sudo apt-get install -y firefox-esr || sudo apt-get install -y firefox || warn "Failed to install Firefox fallback."
+        fi
     else
         info "Yandex Browser already installed."
     fi
