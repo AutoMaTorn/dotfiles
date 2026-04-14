@@ -1,0 +1,44 @@
+# Window manager & bar
+i3wm
+polybar
+
+# Launcher & terminal
+rofi
+kitty
+
+# Compositor & wallpaper
+picom
+feh
+
+# Notifications
+dunst
+
+# Audio
+pipewire
+pipewire-pulse
+wireplumber
+
+# Network & Bluetooth
+network-manager
+network-manager-gnome
+blueman
+
+# System utilities
+brightnessctl
+flameshot
+i3lock
+jq
+x11-xkb-utils
+unclutter-xfixes
+
+# Shell & tools
+zsh
+zsh-autosuggestions
+zsh-syntax-highlighting
+git
+curl
+wget
+unzip
+
+# Fonts
+fonts-noto-color-emoji

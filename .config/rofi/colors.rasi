@@ -1,0 +1,8 @@
+* {
+  al:  #181818;
+  bg:  #181818;
+  se:  #ededed;
+  fg:  #ededed;
+  ac:  #ededed;
+  br:  #ededed;
+}
