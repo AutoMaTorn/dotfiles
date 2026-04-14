@@ -91,7 +91,7 @@ cd "$DOTFILES_DIR"
 # ============================================
 # Install APT packages
 # ============================================
-APT_PKGS=$(get_section "apt" | tr '\n' ' ')
+APT_PKGS=$(get_section "apt" | grep -v "^yandex-browser-stable$" | tr '\n' ' ')
 if [ -n "$APT_PKGS" ]; then
     info "Updating package list..."
     sudo apt-get update
