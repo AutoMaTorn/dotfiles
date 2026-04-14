@@ -10,9 +10,6 @@ kitty
 picom
 feh
 
-# Notifications
-dunst
-
 # Audio
 pipewire
 pipewire-pulse
@@ -22,6 +19,7 @@ wireplumber
 network-manager
 network-manager-gnome
 blueman
+flatpak
 
 # System utilities
 brightnessctl
@@ -29,7 +27,6 @@ flameshot
 i3lock
 jq
 x11-xkb-utils
-unclutter-xfixes
 
 # Shell & tools
 zsh
