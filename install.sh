@@ -102,6 +102,19 @@ fi
 # Unblock wireless devices
 sudo rfkill unblock all 2>/dev/null || true
 
+# Ensure NetworkManager manages Wi-Fi interfaces
+if [ -f /etc/network/interfaces ]; then
+    sudo sed -i '/^[[:space:]]*auto[[:space:]]*wl/d' /etc/network/interfaces
+    sudo sed -i '/^[[:space:]]*iface[[:space:]]*wl/d' /etc/network/interfaces
+    sudo sed -i '/^[[:space:]]*allow-hotplug[[:space:]]*wl/d' /etc/network/interfaces
+fi
+
+# Add user to netdev group for NetworkManager permissions
+sudo usermod -aG netdev "$USER" 2>/dev/null || true
+
+# Restart NetworkManager to pick up changes
+sudo systemctl restart NetworkManager 2>/dev/null || true
+
 # Symlink configs
 info "Creating symlinks for dotfiles..."
 

@@ -19,6 +19,8 @@ wireplumber
 
 # Network & Bluetooth
 network-manager
+wpasupplicant
+iw
 flatpak
 firmware-linux
 firmware-linux-nonfree
