@@ -193,6 +193,13 @@ else
     info "Oh My Zsh already installed."
 fi
 
+# Install zsh-autosuggestions for Oh My Zsh
+if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
+    info "Installing zsh-autosuggestions..."
+    git clone https://github.com/zsh-users/zsh-autosuggestions \
+        "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" 2>/dev/null || true
+fi
+
 # Install Nerd Font
 if ! fc-list | grep -qi "JetBrainsMono.*Nerd"; then
     info "Installing JetBrainsMono Nerd Font..."

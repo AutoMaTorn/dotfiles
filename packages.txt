@@ -52,7 +52,6 @@ tree
 
 # Shell & tools
 zsh
-zsh-autosuggestions
 zsh-syntax-highlighting
 git
 curl
