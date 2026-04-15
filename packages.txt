@@ -19,7 +19,6 @@ wireplumber
 
 # Network & Bluetooth
 network-manager
-network-manager-gnome
 flatpak
 firmware-linux
 firmware-linux-nonfree
@@ -38,6 +37,8 @@ flameshot
 i3lock
 jq
 x11-xkb-utils
+rfkill
+
 
 # Shell & tools
 zsh
@@ -53,7 +54,7 @@ fonts-noto-color-emoji
 
 # Browsers (3rd-party apt repo)
 yandex-browser-stable
-xinit
+fastfetch
 
 [flatpak]
 # Add flatpak apps here, one per line

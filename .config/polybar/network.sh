@@ -1,8 +1,7 @@
 #!/bin/bash
-# Show active network interface: ETH, WIFI or disconnect network
 
-ETH_IF="eno1"
-WIFI_IF="wlp9s0"
+ETH_IF=$(ip link show | awk '/^[0-9]+: e/{gsub(/:/,""); print $2; exit}')
+WIFI_IF=$(ip link show | awk '/^[0-9]+: w/{gsub(/:/,""); print $2; exit}')
 
 ETH_STATE=$(cat /sys/class/net/"$ETH_IF"/operstate 2>/dev/null)
 WIFI_STATE=$(cat /sys/class/net/"$WIFI_IF"/operstate 2>/dev/null)

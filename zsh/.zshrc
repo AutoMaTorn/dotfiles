@@ -1,23 +1,16 @@
-
 export ZSH="$HOME/.oh-my-zsh"
-
 
 ZSH_THEME="agnoster"
 
-
 plugins=(
-	git
-	zsh-autosuggestions
+    git
+    zsh-autosuggestions
 )
 
 source $ZSH/oh-my-zsh.sh
 
-
-
 fastfetch
 
-
-export PATH=$PATH:/home/torn/.spicetify
-export PATH=$PATH:~/.spicetify
-
-. "$HOME/.local/bin/env"
+if [ -f "$HOME/.local/bin/env" ]; then
+    . "$HOME/.local/bin/env"
+fi
