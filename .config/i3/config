@@ -22,6 +22,7 @@ bindsym $super+space exec --no-startup-id rofi -show drun -no-default-config -co
 # apps keybinds
 bindsym $super+shift+s exec flameshot gui
 bindsym $super+l exec i3lock-fancy
+bindsym $super+e exec thunar
 bindsym $super+w exec yandex-browser
 bindsym $super+t exec flatpak run org.telegram.desktop
 

@@ -37,8 +37,14 @@ flameshot
 i3lock
 jq
 x11-xkb-utils
+thunar
+thunar-volman
+gvfs
+gvfs-backends
 rfkill
-
+ranger
+ranger
+tree
 
 # Shell & tools
 zsh
