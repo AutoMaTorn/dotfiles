@@ -20,7 +20,7 @@ cd ~/dotfiles
 ./install.sh
 ```
 
-> **Примечание:** установщик также поставит `Yandex Browser`, `Spotify`, `Telegram`, `v2rayN` и настроит `Flatpak`.
+> **Примечание:** установщик также поставит `Yandex Browser`, `Spotify`, `Telegram` и настроит `Flatpak`.
 
 ---
 
@@ -29,12 +29,13 @@ cd ~/dotfiles
 ```
 .config/
 ├── i3/                        # Конфиг i3 (оконный менеджер)
-│   └── scripts/               # Скрипты автозапуска и утилиты
 ├── polybar/                   # Настройки панели polybar
 ├── rofi/                      # Лаунчер и цветовая схема
 ├── kitty/                     # Конфиг терминала
 ├── fastfetch/                 # Конфиг fastfetch
 └── wallpapers/                # Обои рабочего стола
+ly/
+└── config.ini                 # Конфиг TUI display manager ly
 zsh/
 └── .zshrc                     # Конфиг Zsh
 packages.txt                   # Список пакетов для apt
@@ -58,12 +59,11 @@ set $alt Mod1       # Клавиша Alt
 |------------|----------|
 | `Super + Enter` | Открыть терминал (`kitty`) |
 | `Super + Пробел` | Открыть лаунчер (`rofi`) |
-| `Super + Shift + S` | Скриншот (`flameshot gui`) |
+| `Super + Shift + S` | Скриншот (`maim -s`) |
 | `Super + L` | Блокировка экрана (`i3lock-fancy`) |
 | `Super + W` | Браузер (`yandex-browser`) |
 | `Super + T` | Telegram (Flatpak) |
 | `Super + Q` | Закрыть активное окно |
-| `Super + Ctrl + Q` | Свернуть окно в scratchpad (минимизация) |
 | `Alt + Tab` | Следующий рабочий стол |
 | `Alt + Shift + Tab` | Предыдущий рабочий стол |
 | `Super + Ctrl + Tab` | Вернуться на предыдущий стол (`back_and_forth`) |
@@ -86,7 +86,7 @@ set $alt Mod1       # Клавиша Alt
 ### Автозапуск
 
 - `feh` — обои
-- `pipewire-launcher` — звук
+- `pulseaudio` — звук
 - `setxkbmap` — раскладка `us/ru`, переключение `Alt+Shift`
 - `polybar` — панель (через `exec_always`)
 

@@ -12,10 +12,10 @@ picom
 feh
 
 # Audio
-pipewire
-pipewire-pulse
-pulseaudio-utils
-wireplumber
+pulseaudio
+pulseaudio-module-bluetooth
+pavucontrol
+alsa-utils
 
 # Network & Bluetooth
 network-manager
@@ -23,6 +23,9 @@ wpasupplicant
 polkitd
 iw
 flatpak
+bluez
+bluez-firmware
+rfkill
 firmware-linux
 firmware-linux-nonfree
 firmware-iwlwifi
@@ -30,11 +33,13 @@ firmware-realtek
 firmware-atheros
 firmware-brcm80211
 firmware-misc-nonfree
-bluez-firmware
-rfkill
-lightdm
 
 # System utilities
+build-essential
+libpam0g-dev
+libxcb-xkb-dev
+xauth
+xserver-xorg
 brightnessctl
 maim
 xclip
@@ -46,7 +51,6 @@ thunar-volman
 gvfs
 gvfs-backends
 rfkill
-ranger
 ranger
 tree
 
