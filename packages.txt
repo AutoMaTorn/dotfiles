@@ -1,7 +1,9 @@
 [apt]
-# Window manager & bar
+# Window manager & bar & display manager
 i3
 polybar
+lightdm
+lightdm-gtk-greeter
 
 # Launcher & terminal
 rofi

@@ -34,8 +34,6 @@ cd ~/dotfiles
 ├── kitty/                     # Конфиг терминала
 ├── fastfetch/                 # Конфиг fastfetch
 └── wallpapers/                # Обои рабочего стола
-ly/
-└── config.ini                 # Конфиг TUI display manager ly
 zsh/
 └── .zshrc                     # Конфиг Zsh
 packages.txt                   # Список пакетов для apt

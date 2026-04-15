@@ -27,45 +27,6 @@ get_section() {
     done < "$DOTFILES_DIR/packages.txt"
 }
 
-install_ly() {
-    if command -v ly &>/dev/null || [ -f /usr/bin/ly ]; then
-        info "Ly is already installed."
-    else
-        info "Installing Ly display manager (v1.0.3)..."
-        local LY_TMP ZIG_TMP ZIG_BIN
-        LY_TMP=$(mktemp -d)
-        ZIG_TMP=$(mktemp -d)
-
-        info "Downloading zig 0.13.0..."
-        wget -q "https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz" -O "$ZIG_TMP/zig.tar.xz"
-        tar -xf "$ZIG_TMP/zig.tar.xz" -C "$ZIG_TMP" --strip-components=1
-        ZIG_BIN="$ZIG_TMP/zig"
-
-        info "Cloning ly repository..."
-        git clone --recurse-submodules --branch v1.0.3 --depth 1 https://github.com/fairyglade/ly.git "$LY_TMP"
-
-        cd "$LY_TMP"
-        info "Building ly..."
-        "$ZIG_BIN" build
-
-        info "Installing ly systemd service..."
-        sudo "$ZIG_BIN" build installsystemd
-
-        cd "$DOTFILES_DIR"
-        rm -rf "$LY_TMP" "$ZIG_TMP"
-    fi
-
-    if [ -f "$DOTFILES_DIR/ly/config.ini" ]; then
-        sudo mkdir -p /etc/ly
-        sudo cp "$DOTFILES_DIR/ly/config.ini" /etc/ly/config.ini
-    fi
-
-    sudo systemctl disable getty@tty2.service 2>/dev/null || true
-    sudo systemctl stop lightdm 2>/dev/null || true
-    sudo systemctl disable lightdm 2>/dev/null || true
-    sudo systemctl enable ly.service 2>/dev/null || true
-}
-
 # OS / sudo checks
 if ! grep -qiE "debian|ubuntu" /etc/os-release 2>/dev/null; then
     warn "This installer only supports Debian/Ubuntu."
@@ -269,7 +230,15 @@ fi
 # Enable services
 sudo systemctl enable --now bluetooth 2>/dev/null || true
 sudo systemctl enable --now NetworkManager 2>/dev/null || true
-install_ly
+
+# Setup display manager
+if command -v lightdm &>/dev/null || dpkg -l lightdm &>/dev/null; then
+    info "Configuring LightDM..."
+    sudo systemctl enable getty@tty2.service 2>/dev/null || true
+    sudo systemctl enable lightdm 2>/dev/null || true
+else
+    warn "LightDM not found. It should be installed via apt."
+fi
 
 # Done
 echo ""
@@ -279,7 +248,6 @@ echo -e "${GREEN}============================================${NC}"
 echo ""
 echo "Next steps:"
 echo "  1. Reboot your system."
-echo "  2. Ly login screen will appear on TTY2 — choose i3 and log in."
-echo "     (Switch to TTY2 with Ctrl+Alt+F2 if needed.)"
+echo "  2. LightDM login screen will appear — choose i3 and log in."
 echo ""
 echo "You can edit $DOTFILES_DIR/packages.txt and rerun this script to install additional packages."
