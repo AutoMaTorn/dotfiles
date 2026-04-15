@@ -89,8 +89,20 @@ fi
 cd "$DOTFILES_DIR"
 
 # ============================================
+# Helper: ensure non-free-firmware repo is enabled
+# ============================================
+ensure_nonfree_firmware_repo() {
+    if ! grep -ri "non-free-firmware" /etc/apt/sources.list /etc/apt/sources.list.d/ >/dev/null 2>&1; then
+        warn "non-free-firmware apt component not found. Adding it..."
+        echo "deb http://deb.debian.org/debian/ trixie main non-free-firmware" | sudo tee /etc/apt/sources.list.d/debian-nonfree-firmware.list >/dev/null
+    fi
+}
+
+# ============================================
 # Install APT packages
 # ============================================
+ensure_nonfree_firmware_repo
+
 APT_PKGS=$(get_section "apt" | grep -v "^yandex-browser-stable$" | tr '\n' ' ')
 if [ -n "$APT_PKGS" ]; then
     info "Updating package list..."
@@ -141,6 +153,11 @@ if echo "$APT_PKGS_LIST" | grep -qw "yandex-browser-stable"; then
         info "Yandex Browser already installed."
     fi
 fi
+
+# ============================================
+# Unblock wireless devices
+# ============================================
+sudo rfkill unblock all 2>/dev/null || true
 
 # ============================================
 # Create symlinks for configs
@@ -219,6 +236,7 @@ fi
 # ============================================
 sudo systemctl enable --now bluetooth 2>/dev/null || true
 sudo systemctl enable --now NetworkManager 2>/dev/null || true
+sudo systemctl enable lightdm 2>/dev/null || true
 
 # ============================================
 # Done
@@ -229,7 +247,7 @@ echo -e "${GREEN}Installation complete!${NC}"
 echo -e "${GREEN}============================================${NC}"
 echo ""
 echo "Next steps:"
-echo "  1. Log out and log back in (or reboot)."
-echo "  2. i3 will start automatically when you log into tty1."
+echo "  1. Reboot your system."
+echo "  2. LightDM login screen will appear — choose i3 and log in."
 echo ""
 echo "You can edit $DOTFILES_DIR/packages.txt and rerun this script to install additional packages."
