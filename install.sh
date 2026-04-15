@@ -100,7 +100,11 @@ if get_section "apt" | grep -qx "yandex-browser-stable"; then
 fi
 
 # Unblock wireless devices
+sudo rfkill unblock wifi 2>/dev/null || true
 sudo rfkill unblock all 2>/dev/null || true
+if rfkill list wifi 2>/dev/null | grep -q "Hard blocked: yes"; then
+    warn "Wi-Fi is HARD BLOCKED (hardware switch / Fn key). Unblock it manually."
+fi
 
 # Ensure NetworkManager manages Wi-Fi interfaces
 if [ -f /etc/network/interfaces ]; then
@@ -109,11 +113,43 @@ if [ -f /etc/network/interfaces ]; then
     sudo sed -i '/^[[:space:]]*allow-hotplug[[:space:]]*wl/d' /etc/network/interfaces
 fi
 
+# Clean wireless entries from interfaces.d as well
+for f in /etc/network/interfaces.d/*; do
+    [ -f "$f" ] || continue
+    if grep -qE '^[[:space:]]*(auto|iface|allow-hotplug)[[:space:]]+wl' "$f" 2>/dev/null; then
+        sudo sed -i '/^[[:space:]]*auto[[:space:]]*wl/d' "$f"
+        sudo sed -i '/^[[:space:]]*iface[[:space:]]*wl/d' "$f"
+        sudo sed -i '/^[[:space:]]*allow-hotplug[[:space:]]*wl/d' "$f"
+    fi
+done
+
+# Force NetworkManager to manage interfaces even if they were in /etc/network/interfaces
+if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
+    if grep -q '^\[ifupdown\]' /etc/NetworkManager/NetworkManager.conf; then
+        sudo sed -i '/^\[ifupdown\]/,/^\[/ s/^managed=.*/managed=true/' /etc/NetworkManager/NetworkManager.conf
+    else
+        echo -e "\n[ifupdown]\nmanaged=true" | sudo tee -a /etc/NetworkManager/NetworkManager.conf >/dev/null
+    fi
+fi
+
 # Add user to netdev group for NetworkManager permissions
 sudo usermod -aG netdev "$USER" 2>/dev/null || true
 
-# Restart NetworkManager to pick up changes
+# Allow users in netdev group to manage networks without password
+sudo mkdir -p /etc/polkit-1/rules.d
+sudo tee /etc/polkit-1/rules.d/10-network-manager.rules >/dev/null <<'EOF'
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 && subject.isInGroup("netdev")) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+
+# Restart NetworkManager and reload configuration
 sudo systemctl restart NetworkManager 2>/dev/null || true
+sleep 1
+sudo nmcli general reload 2>/dev/null || true
+nmcli radio wifi on 2>/dev/null || true
 
 # Symlink configs
 info "Creating symlinks for dotfiles..."

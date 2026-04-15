@@ -20,6 +20,7 @@ wireplumber
 # Network & Bluetooth
 network-manager
 wpasupplicant
+polkitd
 iw
 flatpak
 firmware-linux

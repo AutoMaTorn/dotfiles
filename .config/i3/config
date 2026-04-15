@@ -13,6 +13,8 @@ exec_always --no-startup-id feh --bg-fill ~/dotfiles/.config/wallpapers/wallpape
 exec --no-startup-id /usr/libexec/pipewire-launcher
 exec_always --no-startup-id setxkbmap -layout us,ru -option 'grp:alt_shift_toggle' # переключает язык
 exec --no-startup-id picom
+exec --no-startup-id nmcli general reload
+exec --no-startup-id nmcli radio wifi on
 
 # terminal
 bindsym $super+Return exec kitty
