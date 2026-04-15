@@ -12,6 +12,7 @@ floating_modifier $super
 exec_always --no-startup-id feh --bg-fill ~/.config/wallpapers/wallpaper.jpeg
 exec --no-startup-id /usr/libexec/pipewire-launcher
 exec_always --no-startup-id setxkbmap -layout us,ru -option 'grp:alt_shift_toggle' # переключает язык
+exec --no-startup-id picom
 
 # terminal
 bindsym $super+Return exec kitty
@@ -121,7 +122,8 @@ client.background #181818
 # window rules
 for_window [class=".*"] border pixel 3
 hide_edge_borders smart
-gaps inner 0
+gaps inner 10
+gaps outer 5
 
 # kitty
 exec kitty
