@@ -33,7 +33,8 @@ lightdm
 
 # System utilities
 brightnessctl
-flameshot
+maim
+xclip
 i3lock
 jq
 x11-xkb-utils

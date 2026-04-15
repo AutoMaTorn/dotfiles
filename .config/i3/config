@@ -20,7 +20,7 @@ bindsym $super+Return exec kitty
 bindsym $super+space exec --no-startup-id rofi -show drun -no-default-config -config ~/.config/rofi/config.rasi
 
 # apps keybinds
-bindsym $super+shift+s exec flameshot gui
+bindsym $super+shift+s exec --no-startup-id maim -s | xclip -selection clipboard -t image/png
 bindsym $super+l exec i3lock-fancy
 bindsym $super+e exec thunar
 bindsym $super+w exec yandex-browser
