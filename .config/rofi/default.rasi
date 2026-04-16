@@ -1,0 +1,78 @@
+configuration {
+  font: "JetBrainsMono Nerd 12";
+  kb-row-up: "Up,Alt+k";
+  kb-row-down: "Down,Alt+j";
+  kb-mode-next: "Tab";
+  kb-element-next: "";
+
+  drun {
+    display-name: "|>";
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  spacing: 0;
+
+  background-color: #101010;
+  text-color: #ededed;
+}
+
+window {
+  transparency: "real";
+  width: 500px;
+}
+
+mainbox {
+  children: [inputbar, listview];
+}
+
+inputbar {
+  background-color: #101010;
+  children: [prompt, entry];
+}
+
+prompt {
+  background-color: inherit;
+  padding: 12px;
+}
+
+entry {
+  background-color: inherit;
+  padding: 12px 3px;
+}
+
+listview {
+  lines: 5;
+}
+
+element {
+  children: [element-icon, element-text];
+  text-color: #ededed;
+  background-color: #101010;
+  padding: 8px 10px 8px 10px;
+}
+
+element run {
+  children: [element-icon, element-text];
+  text-color: #ededed;
+}
+element-icon {
+  padding: 10px 10px;
+  size: 20px;
+}
+
+element-icon selected {
+  background-color: #2b2b2b;
+}
+
+element-text {
+  padding: 10px 0;
+  text-color: inherit;
+}
+
+element-text selected {
+  text-color: #ededed;
+  background-color: #2b2b2b;
+}

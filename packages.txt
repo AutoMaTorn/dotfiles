@@ -18,6 +18,7 @@ pulseaudio
 pulseaudio-module-bluetooth
 pavucontrol
 alsa-utils
+playerctl
 
 # Network & Bluetooth
 network-manager
