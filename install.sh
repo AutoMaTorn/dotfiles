@@ -102,6 +102,7 @@ if ! command -v v2raya &>/dev/null; then
         sudo tee /etc/apt/sources.list.d/v2raya.list >/dev/null
     sudo apt-get update || warn "v2rayA repo update failed"
     sudo apt-get install -y v2raya || warn "v2rayA install failed"
+    sudo apt-get install -y v2ray || warn "v2ray core install failed"
 fi
 
 # Wireless
@@ -198,6 +199,9 @@ if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]
     git clone https://github.com/zsh-users/zsh-autosuggestions \
         "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" 2>/dev/null || true
 fi
+
+# Восстановить симлинк ~/.zshrc, т.к. установщик Oh My Zsh его перезаписывает
+backup_and_link "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 
 # Nerd Font
 if ! fc-list | grep -qi "JetBrainsMono.*Nerd"; then
