@@ -235,28 +235,41 @@ sudo systemctl enable --now NetworkManager 2>/dev/null || true
 if command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; then
     info "Configuring greetd + tuigreet..."
 
+    # Determine greetd system user (Debian uses _greetd, some distros use greeter)
+    if id -u _greetd &>/dev/null; then
+        GREETD_USER="_greetd"
+    elif id -u greeter &>/dev/null; then
+        GREETD_USER="greeter"
+    else
+        GREETD_USER="_greetd"
+    fi
+
     # Cache dir for tuigreet --remember
     sudo mkdir -p /var/cache/tuigreet
-    sudo chown _greetd:_greetd /var/cache/tuigreet
+    sudo chown "${GREETD_USER}:${GREETD_USER}" /var/cache/tuigreet
     sudo chmod 0755 /var/cache/tuigreet
 
-    # Write greetd config
+    # Write greetd config (run on tty2, leave tty1 as fallback console)
     sudo mkdir -p /etc/greetd
-    sudo tee /etc/greetd/config.toml >/dev/null <<'EOF'
+    sudo tee /etc/greetd/config.toml >/dev/null <<EOF
 [terminal]
-vt = 1
+vt = 2
 
 [default_session]
-command = "tuigreet --time --remember --user-menu"
-user = "_greetd"
+command = "tuigreet --time --remember"
+user = "${GREETD_USER}"
 EOF
 
     # Disable old display manager to avoid conflict
     sudo systemctl disable lightdm 2>/dev/null || true
     sudo systemctl stop lightdm 2>/dev/null || true
 
-    # Mask getty on tty1 so greetd owns it
-    sudo systemctl mask getty@tty1.service 2>/dev/null || true
+    # Ensure greetd can take tty2 without fighting getty
+    sudo systemctl disable getty@tty2.service 2>/dev/null || true
+    sudo systemctl stop getty@tty2.service 2>/dev/null || true
+
+    # Boot into graphical mode so greetd actually starts
+    sudo systemctl set-default graphical.target 2>/dev/null || true
 
     sudo systemctl enable greetd.service 2>/dev/null || true
 else
