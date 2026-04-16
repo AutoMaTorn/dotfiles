@@ -260,7 +260,7 @@ if command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; then
 vt = 2
 
 [default_session]
-command = "tuigreet --time --remember"
+command = "tuigreet --time --remember --cmd startx"
 user = "${GREETD_USER}"
 EOF
 
@@ -271,6 +271,21 @@ EOF
     # Ensure greetd can take tty2 without fighting getty
     sudo systemctl disable getty@tty2.service 2>/dev/null || true
     sudo systemctl stop getty@tty2.service 2>/dev/null || true
+
+    # Allow greetd user to reboot/poweroff/suspend from tuigreet
+    sudo tee /etc/polkit-1/rules.d/50-greetd.rules >/dev/null <<EOF
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.login1.reboot" ||
+         action.id == "org.freedesktop.login1.reboot-multiple-sessions" ||
+         action.id == "org.freedesktop.login1.power-off" ||
+         action.id == "org.freedesktop.login1.power-off-multiple-sessions" ||
+         action.id == "org.freedesktop.login1.suspend" ||
+         action.id == "org.freedesktop.login1.hibernate") &&
+        subject.user == "${GREETD_USER}") {
+        return polkit.Result.YES;
+    }
+});
+EOF
 
     # Boot into graphical mode so greetd actually starts
     sudo systemctl set-default graphical.target 2>/dev/null || true
