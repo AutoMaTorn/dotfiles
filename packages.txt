@@ -42,6 +42,7 @@ libpam0g-dev
 libxcb-xkb-dev
 xauth
 xserver-xorg
+xinit
 brightnessctl
 maim
 xclip
