@@ -287,6 +287,21 @@ polkit.addRule(function(action, subject) {
 });
 EOF
 
+    # Allow local logged-in users to reboot/poweroff/suspend without sudo
+    sudo tee /etc/polkit-1/rules.d/50-user-power.rules >/dev/null <<'EOF'
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.login1.reboot" ||
+         action.id == "org.freedesktop.login1.reboot-multiple-sessions" ||
+         action.id == "org.freedesktop.login1.power-off" ||
+         action.id == "org.freedesktop.login1.power-off-multiple-sessions" ||
+         action.id == "org.freedesktop.login1.suspend" ||
+         action.id == "org.freedesktop.login1.hibernate") &&
+        subject.isInGroup("netdev") && subject.local && subject.active) {
+        return polkit.Result.YES;
+    }
+});
+EOF
+
     # Boot into graphical mode so greetd actually starts
     sudo systemctl set-default graphical.target 2>/dev/null || true
 
