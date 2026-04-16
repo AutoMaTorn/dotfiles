@@ -92,19 +92,6 @@ if ! command -v code &>/dev/null; then
     sudo apt-get install -y code || warn "VSCode install failed"
 fi
 
-# v2rayA
-if ! command -v v2raya &>/dev/null; then
-    info "Installing v2rayA..."
-    sudo mkdir -p /etc/apt/keyrings
-    wget -qO - https://apt.v2raya.org/key/public-key.asc | \
-        sudo tee /etc/apt/keyrings/v2raya.asc >/dev/null
-    echo "deb [signed-by=/etc/apt/keyrings/v2raya.asc] https://apt.v2raya.org/ v2raya main" | \
-        sudo tee /etc/apt/sources.list.d/v2raya.list >/dev/null
-    sudo apt-get update || warn "v2rayA repo update failed"
-    sudo apt-get install -y v2raya || warn "v2rayA install failed"
-    sudo apt-get install -y v2ray || warn "v2ray core install failed"
-fi
-
 # Wireless
 sudo rfkill unblock wifi all 2>/dev/null || true
 if rfkill list wifi 2>/dev/null | grep -q "Hard blocked: yes"; then
@@ -214,6 +201,19 @@ if ! fc-list | grep -qi "JetBrainsMono.*Nerd"; then
     fc-cache -fv "$FONT_DIR" >/dev/null 2>&1
 fi
 
+# Xwrapper config for greetd + startx compatibility
+if [ -f /etc/X11/Xwrapper.config ]; then
+    sudo sed -i 's/^allowed_users=.*/allowed_users=anybody/' /etc/X11/Xwrapper.config
+    if ! grep -q '^needs_root_rights' /etc/X11/Xwrapper.config; then
+        echo "needs_root_rights=no" | sudo tee -a /etc/X11/Xwrapper.config >/dev/null
+    else
+        sudo sed -i 's/^needs_root_rights=.*/needs_root_rights=no/' /etc/X11/Xwrapper.config
+    fi
+fi
+
+# Ensure .xinitrc is executable
+chmod +x "$HOME/.xinitrc"
+
 # Shell
 [ "$SHELL" != "$(which zsh)" ] && chsh -s "$(which zsh)"
 
@@ -239,7 +239,7 @@ if command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; then
 vt = 2
 
 [default_session]
-command = "tuigreet --time --remember --cmd startx --power-shutdown '/usr/bin/systemctl poweroff' --power-reboot '/usr/bin/systemctl reboot'"
+command = "tuigreet --time --remember --cmd /usr/bin/startx --power-shutdown '/usr/bin/systemctl poweroff' --power-reboot '/usr/bin/systemctl reboot'"
 user = "${GREETD_USER}"
 EOF
 
