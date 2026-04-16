@@ -62,7 +62,8 @@ read -rp "Choice [1-4]: " gpu_choice
 case "$gpu_choice" in
     1)
         info "Setting up NVIDIA drivers..."
-        sudo apt-get install -y nvidia-driver nvidia-settings
+        sudo apt-get install -y linux-headers-$(uname -r) build-essential nvidia-driver nvidia-settings
+        sudo dkms autoinstall || warn "DKMS autoinstall failed — module may not load until reboot."
         if [ ! -f /etc/modprobe.d/blacklist-nouveau.conf ]; then
             echo "blacklist nouveau
 options nouveau modeset=0" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf >/dev/null
