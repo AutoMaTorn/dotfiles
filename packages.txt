@@ -35,11 +35,6 @@ firmware-realtek
 firmware-atheros
 firmware-brcm80211
 firmware-misc-nonfree
-
-# System utilities
-build-essential
-libpam0g-dev
-libxcb-xkb-dev
 xauth
 xserver-xorg
 xinit
@@ -53,7 +48,6 @@ thunar
 thunar-volman
 gvfs
 gvfs-backends
-rfkill
 ranger
 tree
 
@@ -73,10 +67,7 @@ yandex-browser-stable
 fastfetch
 
 [flatpak]
-# Add flatpak apps here, one per line
 org.telegram.desktop
 com.spotify.Client
 
 [manual]
-# This section is intentionally left empty.
-# All apps should be installed via apt or flatpak only.

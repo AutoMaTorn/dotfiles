@@ -1,70 +1,49 @@
-
-# Переменные клавиш alt win
-set $super Mod4 
+set $super Mod4
 set $alt Mod1
 
-# font
 font pango:monospace 14
-
 floating_modifier $super
 
-# autostart
 exec_always --no-startup-id feh --bg-fill ~/dotfiles/.config/wallpapers/wallpaper.jpeg
-exec_always --no-startup-id setxkbmap -layout us,ru -option 'grp:alt_shift_toggle' # переключает язык
+exec_always --no-startup-id setxkbmap -layout us,ru -option 'grp:alt_shift_toggle'
 exec --no-startup-id picom
 exec --no-startup-id xrandr --output HDMI-2 --mode 1920x1080
 exec --no-startup-id nmcli general reload
 exec --no-startup-id nmcli radio wifi on
 
-# terminal
 bindsym $super+Return exec kitty
-
-# start dmenu (a program launcher)
 bindsym $super+space exec --no-startup-id rofi -show drun -no-default-config -config ~/.config/rofi/config.rasi
-
-# apps keybinds
 bindsym $super+shift+s exec --no-startup-id maim -s | xclip -selection clipboard -t image/png
 bindsym $super+l exec i3lock-fancy
 bindsym $super+e exec thunar
 bindsym $super+w exec yandex-browser
 bindsym $super+t exec flatpak run org.telegram.desktop
 
-# change volume and brightness
 bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
 bindsym XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
 bindsym XF86MonBrightnessDown exec brightnessctl s 5%-
-bindsym XF86MonBrightnessUp exec brightnessctl s +5%
+bindsym XF86MonBrightnessUp exec brightnessctl s +5%+
 
-# kill
 bindsym $super+q kill
 
-# change focus
 bindsym $super+Left focus left
 bindsym $super+Down focus down
 bindsym $super+Up focus up
 bindsym $super+Right focus right
 
-# move focused window
 bindsym $super+Shift+Left move left
 bindsym $super+Shift+Down move down
 bindsym $super+Shift+Up move up
 bindsym $super+Shift+Right move right
 
-# split in horizontal or vertical orientation
 bindsym $super+h split h
 bindsym $super+v split v
 
-# enter fullscreen mode for the focused container
 bindsym $super+f fullscreen toggle
-
-# toggle tiling / floating
 bindsym $alt+space floating toggle
-
-# change focus between tiling / floating windows
 bindsym $super+Shift+space focus mode_toggle
 
-# switch to workspace
 bindsym $alt+Tab workspace next
 bindsym $alt+Shift+Tab workspace prev
 bindsym $super+Control+Right workspace next
@@ -80,7 +59,6 @@ bindsym $super+8 workspace 8
 bindsym $super+9 workspace 9
 bindsym $super+0 workspace 10
 
-# move focused container to workspace
 bindsym $super+Shift+1 move container to workspace 1
 bindsym $super+Shift+2 move container to workspace 2
 bindsym $super+Shift+3 move container to workspace 3
@@ -92,28 +70,20 @@ bindsym $super+Shift+8 move container to workspace 8
 bindsym $super+Shift+9 move container to workspace 9
 bindsym $super+Shift+0 move container to workspace 10
 
-# restart i3
 bindsym $super+BackSpace exec "i3-msg restart"
+bindsym $super+shift+e exec "i3-nagbar -t warning -m 'Really, exit?' -b 'Yes' 'i3-msg exit'"
 
-# exit i3
-bindsym $super+shift+e exec "i3-nagbar -t warning -m 'Really, exit?' \
--b 'Yes' 'i3-msg exit'"
-
-# resize window (you can also use the mouse for that)
 bindsym $super+r mode "resize"
-
 mode "resize" {
-	bindsym Left resize shrink width 5 px or 5 ppt
-	bindsym Down resize grow height 5 px or 5 ppt
-	bindsym Up resize shrink height 5 px or 5 ppt
-	bindsym Right resize grow width 5 px or 5 ppt
-	bindsym Return mode "default"
+    bindsym Left resize shrink width 5 px or 5 ppt
+    bindsym Down resize grow height 5 px or 5 ppt
+    bindsym Up resize shrink height 5 px or 5 ppt
+    bindsym Right resize grow width 5 px or 5 ppt
+    bindsym Return mode "default"
 }
 
-# polybar
 exec_always --no-startup-id ~/.config/polybar/launch.sh
 
-# colour of border, background, text, indicator, and child_border
 client.focused #ededed #181818 #ededed #ededed #ededed
 client.focused_inactive #181818 #181818 #ededed #181818 #181818
 client.unfocused #181818 #181818 #ededed #181818 #181818
@@ -121,11 +91,7 @@ client.urgent #ff7f7f #181818 #ededed #ff7f7f #ff7f7f
 client.placeholder #181818 #181818 #ededed #181818 #181818
 client.background #181818
 
-# window rules
 for_window [class=".*"] border pixel 3
 hide_edge_borders smart
 gaps inner 10
 gaps outer 5
-
-# kitty
-exec kitty
