@@ -260,7 +260,7 @@ if command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; then
 vt = 2
 
 [default_session]
-command = "tuigreet --time --remember --cmd startx --power-shutdown '/usr/bin/systemctl poweroff' --power-reboot '/usr/bin/systemctl reboot' --power-suspend '/usr/bin/systemctl suspend' --power-hibernate '/usr/bin/systemctl hibernate'"
+command = "tuigreet --time --remember --cmd startx --power-shutdown '/usr/bin/systemctl poweroff' --power-reboot '/usr/bin/systemctl reboot'"
 user = "${GREETD_USER}"
 EOF
 
