@@ -217,17 +217,17 @@ if [ -f "$DOTFILES_DIR/.config/picom.conf" ]; then
 fi
 
 # Oh My Zsh + autosuggestions
-if [ ! -d "$HOME/.oh-my-zsh" ] || [ -z "$(ls -A "$HOME/.oh-my-zsh")" ]; then
+if [ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
     info "Installing Oh My Zsh..."
-    git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
+    git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh" || warn "Oh My Zsh install failed"
 fi
 
 ZSH_AUTOSUGGESTIONS_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
-if [ ! -d "$ZSH_AUTOSUGGESTIONS_DIR" ] || [ -z "$(ls -A "$ZSH_AUTOSUGGESTIONS_DIR")" ]; then
+if [ ! -f "$ZSH_AUTOSUGGESTIONS_DIR/zsh-autosuggestions.zsh" ]; then
     rm -rf "$ZSH_AUTOSUGGESTIONS_DIR"
     info "Installing zsh-autosuggestions..."
-    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_AUTOSUGGESTIONS_DIR"
+    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_AUTOSUGGESTIONS_DIR" || warn "zsh-autosuggestions install failed"
 fi
 
 # Восстановить симлинк ~/.zshrc, т.к. установщик Oh My Zsh его перезаписывает
