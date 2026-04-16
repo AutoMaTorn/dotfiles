@@ -36,10 +36,11 @@ fi
 cd "$DOTFILES_DIR"
 
 # Non-free firmware repo
-if ! grep -riq "non-free-firmware" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
-    warn "Adding non-free-firmware repo..."
-    echo "deb http://deb.debian.org/debian/ trixie main non-free-firmware" | \
-        sudo tee /etc/apt/sources.list.d/debian-nonfree-firmware.list >/dev/null
+REPO_FILE="/etc/apt/sources.list.d/debian-nonfree-firmware.list"
+if [ ! -f "$REPO_FILE" ] || ! grep -q "non-free" "$REPO_FILE" 2>/dev/null; then
+    warn "Adding non-free repo..."
+    echo "deb http://deb.debian.org/debian/ trixie main contrib non-free non-free-firmware" | \
+        sudo tee "$REPO_FILE" >/dev/null
 fi
 
 APT_PKGS=$(get_section "apt" | grep -v "^yandex-browser-stable$" | tr '\n' ' ')
@@ -48,6 +49,43 @@ if [ -n "$APT_PKGS" ]; then
     sudo apt-get update
     sudo apt-get install -y $APT_PKGS
 fi
+
+# GPU driver setup
+echo ""
+echo "Select your GPU vendor:"
+echo "  [1] NVIDIA (installs proprietary driver, disables nouveau)"
+echo "  [2] AMD    (installs open-source Mesa + firmware)"
+echo "  [3] Intel  (installs open-source Mesa + firmware)"
+echo "  [4] Skip   (do nothing)"
+read -rp "Choice [1-4]: " gpu_choice
+
+case "$gpu_choice" in
+    1)
+        info "Setting up NVIDIA drivers..."
+        sudo apt-get install -y nvidia-driver nvidia-settings
+        if [ ! -f /etc/modprobe.d/blacklist-nouveau.conf ]; then
+            echo "blacklist nouveau
+options nouveau modeset=0" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf >/dev/null
+        fi
+        if ! grep -q "nouveau.modeset=0" /etc/default/grub; then
+            sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nouveau.modeset=0"/' /etc/default/grub
+            sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nouveau.modeset=0"/' /etc/default/grub
+        fi
+        sudo update-grub
+        sudo update-initramfs -u
+        warn "Nouveau disabled. Reboot required to use NVIDIA drivers."
+        ;;
+    2)
+        info "Setting up AMD drivers..."
+        sudo apt-get install -y firmware-amd-graphics mesa-vulkan-drivers xserver-xorg-video-amdgpu
+        ;;
+    3)
+        info "Setting up Intel drivers..."
+        sudo apt-get install -y intel-media-va-driver-non-free firmware-intel-graphics
+        ;;
+    4) info "Skipping GPU driver setup." ;;
+    *) warn "Invalid choice. Skipping GPU driver setup." ;;
+esac
 
 # PipeWire -> PulseAudio
 if get_section "apt" | grep -qx "pulseaudio"; then
@@ -178,13 +216,17 @@ if [ -f "$DOTFILES_DIR/.config/picom.conf" ]; then
 fi
 
 # Oh My Zsh + autosuggestions
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
+if [ ! -d "$HOME/.oh-my-zsh" ] || [ -z "$(ls -A "$HOME/.oh-my-zsh")" ]; then
+    rm -rf "$HOME/.oh-my-zsh"
     info "Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh"
 fi
-if [ ! -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" ]; then
-    git clone https://github.com/zsh-users/zsh-autosuggestions \
-        "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions" 2>/dev/null || true
+
+ZSH_AUTOSUGGESTIONS_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+if [ ! -d "$ZSH_AUTOSUGGESTIONS_DIR" ] || [ -z "$(ls -A "$ZSH_AUTOSUGGESTIONS_DIR")" ]; then
+    rm -rf "$ZSH_AUTOSUGGESTIONS_DIR"
+    info "Installing zsh-autosuggestions..."
+    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_AUTOSUGGESTIONS_DIR"
 fi
 
 # Восстановить симлинк ~/.zshrc, т.к. установщик Oh My Zsh его перезаписывает
