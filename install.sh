@@ -140,6 +140,9 @@ fi
 # Add user to netdev group for NetworkManager permissions
 sudo usermod -aG netdev "$USER" 2>/dev/null || true
 
+# Add user to video group for Xorg/DRI access
+sudo usermod -aG video "$USER" 2>/dev/null || true
+
 # Allow users in netdev group to manage networks without password
 sudo mkdir -p /etc/polkit-1/rules.d
 sudo tee /etc/polkit-1/rules.d/10-network-manager.rules >/dev/null <<'EOF'
@@ -179,6 +182,7 @@ links=(
     "$DOTFILES_DIR/.config/fastfetch:$HOME/.config/fastfetch"
     "$DOTFILES_DIR/.config/wallpapers:$HOME/.config/wallpapers"
     "$DOTFILES_DIR/zsh/.zshrc:$HOME/.zshrc"
+    "$DOTFILES_DIR/.xinitrc:$HOME/.xinitrc"
 )
 
 for pair in "${links[@]}"; do
