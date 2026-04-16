@@ -1,6 +1,8 @@
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME="agnoster"
 plugins=(git zsh-autosuggestions)
+AGNOSTER_DIR_FG=white
+
 if [ -f "$ZSH/oh-my-zsh.sh" ]; then
     source "$ZSH/oh-my-zsh.sh"
 else
