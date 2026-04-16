@@ -2,8 +2,8 @@
 # Window manager & bar & display manager
 i3
 polybar
-lightdm
-lightdm-gtk-greeter
+greetd
+tuigreet
 
 # Launcher & terminal
 rofi

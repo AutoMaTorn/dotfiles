@@ -232,12 +232,35 @@ sudo systemctl enable --now bluetooth 2>/dev/null || true
 sudo systemctl enable --now NetworkManager 2>/dev/null || true
 
 # Setup display manager
-if command -v lightdm &>/dev/null || dpkg -l lightdm &>/dev/null; then
-    info "Configuring LightDM..."
-    sudo systemctl enable getty@tty2.service 2>/dev/null || true
-    sudo systemctl enable lightdm 2>/dev/null || true
+if command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; then
+    info "Configuring greetd + tuigreet..."
+
+    # Cache dir for tuigreet --remember
+    sudo mkdir -p /var/cache/tuigreet
+    sudo chown _greetd:_greetd /var/cache/tuigreet
+    sudo chmod 0755 /var/cache/tuigreet
+
+    # Write greetd config
+    sudo mkdir -p /etc/greetd
+    sudo tee /etc/greetd/config.toml >/dev/null <<'EOF'
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --remember --user-menu"
+user = "_greetd"
+EOF
+
+    # Disable old display manager to avoid conflict
+    sudo systemctl disable lightdm 2>/dev/null || true
+    sudo systemctl stop lightdm 2>/dev/null || true
+
+    # Mask getty on tty1 so greetd owns it
+    sudo systemctl mask getty@tty1.service 2>/dev/null || true
+
+    sudo systemctl enable greetd.service 2>/dev/null || true
 else
-    warn "LightDM not found. It should be installed via apt."
+    warn "greetd not found. It should be installed via apt."
 fi
 
 # Done
@@ -248,6 +271,6 @@ echo -e "${GREEN}============================================${NC}"
 echo ""
 echo "Next steps:"
 echo "  1. Reboot your system."
-echo "  2. LightDM login screen will appear — choose i3 and log in."
+echo "  2. greetd login screen will appear — choose i3 and log in."
 echo ""
 echo "You can edit $DOTFILES_DIR/packages.txt and rerun this script to install additional packages."
