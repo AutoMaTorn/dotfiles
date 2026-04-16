@@ -83,14 +83,14 @@ mode "resize" {
 
 exec_always --no-startup-id ~/.config/polybar/launch.sh
 
-client.focused #ededed #181818 #ededed #ededed #ededed
-client.focused_inactive #181818 #181818 #ededed #181818 #181818
-client.unfocused #181818 #181818 #ededed #181818 #181818
-client.urgent #ff7f7f #181818 #ededed #ff7f7f #ff7f7f
-client.placeholder #181818 #181818 #ededed #181818 #181818
-client.background #181818
+client.focused          #c3efed #181818 #EDEDED #c3efed #c3efed
+client.focused_inactive #525252 #181818 #939393 #525252 #181818
+client.unfocused        #525252 #181818 #939393 #525252 #181818
+client.urgent           #C9D9D8 #181818 #EDEDED #C9D9D8 #C9D9D8
+client.placeholder      #525252 #181818 #939393 #525252 #181818
+client.background       #181818
 
-for_window [class=".*"] border pixel 3
+for_window [class=".*"] border pixel 2
 hide_edge_borders smart
 gaps inner 10
 gaps outer 5
