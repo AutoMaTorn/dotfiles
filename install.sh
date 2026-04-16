@@ -81,6 +81,29 @@ if get_section "apt" | grep -qx "yandex-browser-stable"; then
     fi
 fi
 
+# VSCode
+if ! command -v code &>/dev/null; then
+    info "Installing VSCode..."
+    wget -qO- https://packages.microsoft.com/keys/microsoft.asc | \
+        sudo gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg
+    echo "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | \
+        sudo tee /etc/apt/sources.list.d/vscode.list >/dev/null
+    sudo apt-get update || warn "VSCode repo update failed"
+    sudo apt-get install -y code || warn "VSCode install failed"
+fi
+
+# v2rayA
+if ! command -v v2raya &>/dev/null; then
+    info "Installing v2rayA..."
+    sudo mkdir -p /etc/apt/keyrings
+    wget -qO - https://apt.v2raya.org/key/public-key.asc | \
+        sudo tee /etc/apt/keyrings/v2raya.asc >/dev/null
+    echo "deb [signed-by=/etc/apt/keyrings/v2raya.asc] https://apt.v2raya.org/ v2raya main" | \
+        sudo tee /etc/apt/sources.list.d/v2raya.list >/dev/null
+    sudo apt-get update || warn "v2rayA repo update failed"
+    sudo apt-get install -y v2raya || warn "v2rayA install failed"
+fi
+
 # Wireless
 sudo rfkill unblock wifi all 2>/dev/null || true
 if rfkill list wifi 2>/dev/null | grep -q "Hard blocked: yes"; then

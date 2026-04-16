@@ -69,5 +69,7 @@ fastfetch
 [flatpak]
 org.telegram.desktop
 com.spotify.Client
+com.valvesoftware.Steam
+com.discordapp.Discord
 
 [manual]
