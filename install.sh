@@ -355,7 +355,7 @@ fi
 if [ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
     info "Installing Oh My Zsh..."
-    if git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh" 2>/dev/null; then
+    if RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" 2>/dev/null; then
         info "Oh My Zsh installed."
     else
         warn "Oh My Zsh install failed — check internet connection."
