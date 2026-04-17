@@ -292,6 +292,31 @@ EOF
     sudo systemctl stop getty@tty2.service 2>/dev/null || true
     sudo systemctl set-default graphical.target 2>/dev/null || true
     sudo systemctl enable greetd.service 2>/dev/null || true
+
+    # Fix Intel AX210 Bluetooth firmware load error (-19)
+    if ! grep -q "enable_autosuspend=0" /etc/modprobe.d/btusb.conf 2>/dev/null; then
+        info "Fixing Bluetooth autosuspend for AX210..."
+        echo "options btusb enable_autosuspend=0" | sudo tee /etc/modprobe.d/btusb.conf >/dev/null
+        sudo update-initramfs -u 2>/dev/null || warn "update-initramfs failed — reboot required for BT fix."
+    fi
+
+    # Hide kernel messages from greetd TTY
+    info "Hiding kernel messages from greetd console..."
+    sudo tee /etc/systemd/system/greetd-quiet-console.service >/dev/null <<'EOF'
+[Unit]
+Description=Disable kernel messages on console before greetd
+Before=greetd.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/dmesg --console-off
+RemainAfterExit=yes
+
+[Install]
+RequiredBy=greetd.service
+EOF
+    sudo systemctl daemon-reload 2>/dev/null || true
+    sudo systemctl enable greetd-quiet-console.service 2>/dev/null || true
 fi
 
 echo ""
