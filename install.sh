@@ -355,14 +355,20 @@ fi
 if [ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
     info "Installing Oh My Zsh..."
-    git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh" || warn "Oh My Zsh install failed"
+    if git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$HOME/.oh-my-zsh" 2>/dev/null; then
+        info "Oh My Zsh installed."
+    else
+        warn "Oh My Zsh install failed — check internet connection."
+    fi
 fi
 
-ZSH_AUTOSUGGESTIONS_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
-if [ ! -f "$ZSH_AUTOSUGGESTIONS_DIR/zsh-autosuggestions.zsh" ]; then
-    rm -rf "$ZSH_AUTOSUGGESTIONS_DIR"
-    info "Installing zsh-autosuggestions..."
-    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_AUTOSUGGESTIONS_DIR" || warn "zsh-autosuggestions install failed"
+if [ -d "$HOME/.oh-my-zsh" ]; then
+    ZSH_AUTOSUGGESTIONS_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+    if [ ! -f "$ZSH_AUTOSUGGESTIONS_DIR/zsh-autosuggestions.zsh" ]; then
+        rm -rf "$ZSH_AUTOSUGGESTIONS_DIR"
+        info "Installing zsh-autosuggestions..."
+        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_AUTOSUGGESTIONS_DIR" 2>/dev/null || warn "zsh-autosuggestions install failed"
+    fi
 fi
 
 backup_and_link "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
@@ -392,6 +398,9 @@ if [ -f /etc/X11/Xwrapper.config ]; then
     else
         sudo sed -i 's/^needs_root_rights=.*/needs_root_rights=no/' /etc/X11/Xwrapper.config
     fi
+else
+    info "Creating /etc/X11/Xwrapper.config..."
+    echo -e "allowed_users=anybody\nneeds_root_rights=no" | sudo tee /etc/X11/Xwrapper.config >/dev/null
 fi
 
 chmod +x "$HOME/.xinitrc"
@@ -400,7 +409,15 @@ chmod +x "$HOME/.xinitrc"
 # Shell
 # ───────────────────────────────
 
-[ "$SHELL" != "$(which zsh)" ] && chsh -s "$(which zsh)"
+ZSH_BIN=$(which zsh 2>/dev/null || true)
+if [ -n "$ZSH_BIN" ] && [ -x "$ZSH_BIN" ]; then
+    if [ "$SHELL" != "$ZSH_BIN" ]; then
+        info "Changing default shell to zsh..."
+        chsh -s "$ZSH_BIN" || warn "chsh failed — run manually: chsh -s $(which zsh)"
+    fi
+else
+    warn "zsh not found — skipping chsh."
+fi
 
 # ───────────────────────────────
 # Services
@@ -440,6 +457,7 @@ EOF
     sudo systemctl stop getty@tty2.service 2>/dev/null || true
     sudo systemctl set-default graphical.target 2>/dev/null || true
     sudo systemctl enable greetd.service 2>/dev/null || true
+    sudo systemctl start greetd.service 2>/dev/null || warn "Failed to start greetd — check logs with: journalctl -u greetd"
 
     if ! grep -q "enable_autosuspend=0" /etc/modprobe.d/btusb.conf 2>/dev/null; then
         info "Fixing Bluetooth autosuspend for AX210..."
