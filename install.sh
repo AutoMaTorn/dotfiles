@@ -459,10 +459,13 @@ EOF
     sudo systemctl enable greetd.service 2>/dev/null || true
     sudo systemctl start greetd.service 2>/dev/null || warn "Failed to start greetd — check logs with: journalctl -u greetd"
 
-    if ! grep -q "enable_autosuspend=0" /etc/modprobe.d/btusb.conf 2>/dev/null; then
-        info "Fixing Bluetooth autosuspend for AX210..."
-        echo "options btusb enable_autosuspend=0" | sudo tee /etc/modprobe.d/btusb.conf >/dev/null
-        sudo update-initramfs -u 2>/dev/null || warn "update-initramfs failed — reboot required for BT fix."
+    # Apply AX210 Bluetooth fix only if AX210 is detected
+    if lsusb 2>/dev/null | grep -qiE "8087:0032|8087:0033|AX210"; then
+        if ! grep -q "enable_autosuspend=0" /etc/modprobe.d/btusb.conf 2>/dev/null; then
+            info "Fixing Bluetooth autosuspend for AX210..."
+            echo "options btusb enable_autosuspend=0" | sudo tee /etc/modprobe.d/btusb.conf >/dev/null
+            sudo update-initramfs -u 2>/dev/null || warn "update-initramfs failed — reboot required for BT fix."
+        fi
     fi
 
     info "Hiding kernel messages from greetd console..."
@@ -484,6 +487,14 @@ EOF
 fi
 
 # ───────────────────────────────
+# Wi-Fi: ensure it's enabled
+# ───────────────────────────────
+
+if command -v nmcli &>/dev/null; then
+    nmcli radio wifi on 2>/dev/null || true
+fi
+
+# ───────────────────────────────
 # Summary
 # ───────────────────────────────
 
@@ -500,4 +511,12 @@ echo -e "${GREEN}Reboot to enter greetd → i3.${NC}"
 if [ "$GPU" = "nvidia" ]; then
     echo -e "${YELLOW}NVIDIA: nouveau is blacklisted, reboot required.${NC}"
 fi
+
+# Wi-Fi status
+if command -v nmcli &>/dev/null; then
+    echo ""
+    echo -e "${YELLOW}Wi-Fi status:${NC}"
+    nmcli device show 2>/dev/null | grep -E "GENERAL.DEVICE|GENERAL.TYPE|GENERAL.STATE" | head -n 12 || true
+fi
+
 echo -e "${GREEN}============================================${NC}"

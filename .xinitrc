@@ -2,7 +2,7 @@
 
 # Set maximum available refresh rate for each connected display
 for output in $(xrandr | awk '/ connected/ {print $1}'); do
-    read -r mode rate <<< "$(xrandr --query | awk -v out="$output" '
+    mode_rate=$(xrandr --query | awk -v out="$output" '
         $0 ~ "^"out" " { show=1; next }
         show && /^[^ ]/ { exit }
         show {
@@ -14,7 +14,10 @@ for output in $(xrandr | awk '/ connected/ {print $1}'); do
                 }
             }
         }
-    ' | sort -t' ' -k2 -n -r | head -n1)"
+    ' | sort -t' ' -k2 -n -r | head -n1)
+
+    mode=$(printf '%s' "$mode_rate" | awk '{print $1}')
+    rate=$(printf '%s' "$mode_rate" | awk '{print $2}')
 
     if [ -n "$mode" ] && [ -n "$rate" ]; then
         xrandr --output "$output" --mode "$mode" --rate "$rate"
