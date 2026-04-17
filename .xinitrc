@@ -1,16 +1,31 @@
 #!/bin/sh
 
-# Set maximum available refresh rate for each connected display
+# Set maximum available refresh rate for the PREFERRED (native) resolution
+# of each connected display. The preferred mode is marked with '+' in xrandr.
 for output in $(xrandr | awk '/ connected/ {print $1}'); do
-    mode_rate=$(xrandr --query | awk -v out="$output" '
+    # Find the preferred/native resolution (marked with +)
+    preferred_mode=$(xrandr --query | awk -v out="$output" '
         $0 ~ "^"out" " { show=1; next }
         show && /^[^ ]/ { exit }
         show {
-            res=$1
+            for(i=2;i<=NF;i++) {
+                if ($i ~ /\+/) {
+                    print $1
+                    exit
+                }
+            }
+        }
+    ')
+
+    # Find the highest refresh rate for that preferred resolution
+    mode_rate=$(xrandr --query | awk -v out="$output" -v mode="$preferred_mode" '
+        $0 ~ "^"out" " { show=1; next }
+        show && /^[^ ]/ { exit }
+        show && $1 == mode {
             for(i=2;i<=NF;i++) {
                 gsub(/[+*]/, "", $i)
                 if ($i ~ /^[0-9]+(\.[0-9]+)?$/) {
-                    print res, $i
+                    print $1, $i
                 }
             }
         }
