@@ -13,7 +13,7 @@ exec --no-startup-id nmcli radio wifi on
 bindsym $super+Return exec kitty
 bindsym $super+space exec --no-startup-id rofi -show drun -no-default-config -config ~/.config/rofi/config.rasi
 bindsym $super+shift+s exec --no-startup-id maim -s | xclip -selection clipboard -t image/png
-bindsym $super+l exec i3lock-fancy
+bindsym $super+l exec --no-startup-id ~/.config/i3/lock.sh
 bindsym $super+e exec thunar
 bindsym $super+w exec yandex-browser
 bindsym $super+t exec flatpak run org.telegram.desktop

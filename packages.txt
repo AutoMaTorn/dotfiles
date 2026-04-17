@@ -43,6 +43,7 @@ brightnessctl
 maim
 xclip
 i3lock
+imagemagick
 jq
 x11-xkb-utils
 thunar
@@ -72,5 +73,10 @@ org.telegram.desktop
 com.spotify.Client
 com.valvesoftware.Steam
 com.discordapp.Discord
+
+[laptop]
+tlp
+powertop
+acpi-support
 
 [manual]

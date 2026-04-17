@@ -5,9 +5,10 @@ REPO_URL="https://github.com/automatorn/dotfiles.git"
 FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip"
 FONT_DIR="$HOME/.local/share/fonts"
 
-GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
+GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 info() { echo -e "${GREEN}[INFO]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+err()  { echo -e "${RED}[ERR]${NC} $1"; }
 
 get_section() {
     awk -v sec="$1" '
@@ -17,7 +18,67 @@ get_section() {
     ' "$DOTFILES_DIR/packages.txt"
 }
 
-# Checks
+# ───────────────────────────────
+# Hardware detection
+# ───────────────────────────────
+
+detect_formfactor() {
+    if [ -d /sys/class/power_supply ]; then
+        for bat in /sys/class/power_supply/BAT*; do
+            [ -e "$bat" ] && { echo "laptop"; return; }
+        done
+    fi
+    echo "desktop"
+}
+
+detect_gpu() {
+    local gpu_info
+    gpu_info=$(lspci 2>/dev/null | grep -iE 'vga|3d|display' || true)
+
+    # Prefer discrete GPU if present
+    if echo "$gpu_info" | grep -qi 'nvidia'; then
+        echo "nvidia"
+    elif echo "$gpu_info" | grep -qiE 'amd|ati'; then
+        echo "amd"
+    elif echo "$gpu_info" | grep -qi 'intel'; then
+        echo "intel"
+    else
+        echo "unknown"
+    fi
+}
+
+get_nvidia_driver_version() {
+    if command -v nvidia-smi &>/dev/null; then
+        nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -n1 | tr -d ' \t'
+    else
+        # Fallback: try to extract from installed package name
+        dpkg -l 2>/dev/null | grep -oP 'nvidia-driver-\K[0-9]+' | head -n1
+    fi
+}
+
+# ───────────────────────────────
+# CLI argument parsing
+# ───────────────────────────────
+
+GPU_OVERRIDE=""
+FORMFACTOR_OVERRIDE=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --gpu=*) GPU_OVERRIDE="${1#*=}"; shift ;;
+        --formfactor=*) FORMFACTOR_OVERRIDE="${1#*=}"; shift ;;
+        --help|-h)
+            echo "Usage: $0 [--gpu=nvidia|amd|intel] [--formfactor=laptop|desktop]"
+            exit 0
+            ;;
+        *) warn "Unknown argument: $1"; shift ;;
+    esac
+done
+
+# ───────────────────────────────
+# Pre-flight checks
+# ───────────────────────────────
+
 if ! grep -qiE "debian|ubuntu" /etc/os-release 2>/dev/null; then
     warn "Only Debian/Ubuntu are supported."; exit 1
 fi
@@ -28,12 +89,19 @@ if ! sudo -n true 2>/dev/null; then
     warn "Sudo required for apt."; sudo -v
 fi
 
-# Clone
+# Clone repo
 if [ ! -d "$DOTFILES_DIR" ]; then
     info "Cloning dotfiles..."
     git clone "$REPO_URL" "$DOTFILES_DIR"
 fi
 cd "$DOTFILES_DIR"
+
+# Detect hardware
+FORMFACTOR="${FORMFACTOR_OVERRIDE:-$(detect_formfactor)}"
+GPU="${GPU_OVERRIDE:-$(detect_gpu)}"
+
+info "Detected form factor: $FORMFACTOR"
+info "Detected GPU vendor:  $GPU"
 
 # Non-free firmware repo
 REPO_FILE="/etc/apt/sources.list.d/debian-nonfree-firmware.list"
@@ -43,6 +111,10 @@ if [ ! -f "$REPO_FILE" ] || ! grep -q "non-free" "$REPO_FILE" 2>/dev/null; then
         sudo tee "$REPO_FILE" >/dev/null
 fi
 
+# ───────────────────────────────
+# Apt packages
+# ───────────────────────────────
+
 APT_PKGS=$(get_section "apt" | grep -v "^yandex-browser-stable$" | tr '\n' ' ')
 if [ -n "$APT_PKGS" ]; then
     info "Installing apt packages..."
@@ -50,45 +122,65 @@ if [ -n "$APT_PKGS" ]; then
     sudo apt-get install -y $APT_PKGS
 fi
 
-# GPU driver setup
-echo ""
-echo "Select your GPU vendor:"
-echo "  [1] NVIDIA (installs proprietary driver, disables nouveau)"
-echo "  [2] AMD    (installs open-source Mesa + firmware)"
-echo "  [3] Intel  (installs open-source Mesa + firmware)"
-echo "  [4] Skip   (do nothing)"
-read -rp "Choice [1-4]: " gpu_choice
+# ───────────────────────────────
+# GPU driver setup (auto-detected)
+# ───────────────────────────────
 
-case "$gpu_choice" in
-    1)
+case "$GPU" in
+    nvidia)
         info "Setting up NVIDIA drivers..."
         sudo apt-get install -y linux-headers-$(uname -r) build-essential nvidia-driver nvidia-settings
         sudo dkms autoinstall || warn "DKMS autoinstall failed — module may not load until reboot."
+
         if [ ! -f /etc/modprobe.d/blacklist-nouveau.conf ]; then
             echo "blacklist nouveau
 options nouveau modeset=0" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf >/dev/null
         fi
+
         if ! grep -q "nouveau.modeset=0" /etc/default/grub; then
             sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nouveau.modeset=0"/' /etc/default/grub
             sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nouveau.modeset=0"/' /etc/default/grub
         fi
+
         sudo update-grub
         sudo update-initramfs -u
         warn "Nouveau disabled. Reboot required to use NVIDIA drivers."
         ;;
-    2)
+    amd)
         info "Setting up AMD drivers..."
         sudo apt-get install -y firmware-amd-graphics mesa-vulkan-drivers xserver-xorg-video-amdgpu
         ;;
-    3)
+    intel)
         info "Setting up Intel drivers..."
         sudo apt-get install -y intel-media-va-driver-non-free firmware-intel-graphics
         ;;
-    4) info "Skipping GPU driver setup." ;;
-    *) warn "Invalid choice. Skipping GPU driver setup." ;;
+    *)
+        warn "Could not detect GPU. Skipping GPU driver setup."
+        warn "Run with --gpu=nvidia|amd|intel to force."
+        ;;
 esac
 
-# PipeWire -> PulseAudio
+# ───────────────────────────────
+# Laptop-specific packages
+# ───────────────────────────────
+
+if [ "$FORMFACTOR" = "laptop" ]; then
+    info "Installing laptop-specific packages..."
+    LAPTOP_PKGS=$(get_section "laptop" | tr '\n' ' ')
+    if [ -n "$LAPTOP_PKGS" ]; then
+        sudo apt-get install -y $LAPTOP_PKGS || warn "Some laptop packages failed to install."
+    fi
+
+    # Enable TLP if installed
+    if command -v tlp &>/dev/null; then
+        sudo systemctl enable --now tlp 2>/dev/null || true
+    fi
+fi
+
+# ───────────────────────────────
+# Audio: PipeWire → PulseAudio
+# ───────────────────────────────
+
 if get_section "apt" | grep -qx "pulseaudio"; then
     info "Switching to PulseAudio..."
     systemctl --user stop pipewire pipewire-pulse wireplumber pipewire.socket pipewire-pulse.socket 2>/dev/null || true
@@ -97,7 +189,10 @@ if get_section "apt" | grep -qx "pulseaudio"; then
     systemctl --user start pulseaudio 2>/dev/null || true
 fi
 
-# Flatpak
+# ───────────────────────────────
+# Flatpak apps + NVIDIA runtime
+# ───────────────────────────────
+
 FLATPAK_PKGS=$(get_section "flatpak" | tr '\n' ' ')
 if [ -n "$FLATPAK_PKGS" ]; then
     info "Installing flatpak apps..."
@@ -107,7 +202,30 @@ if [ -n "$FLATPAK_PKGS" ]; then
     done
 fi
 
+# Auto-install matching NVIDIA Flatpak runtime
+if [ "$GPU" = "nvidia" ]; then
+    NV_VER=$(get_nvidia_driver_version)
+    if [ -n "$NV_VER" ]; then
+        # Flatpak uses version without dots (e.g. 550-163-01)
+        NV_VER_FLAT=$(echo "$NV_VER" | sed 's/\./-/g')
+        info "Detected NVIDIA driver version: $NV_VER"
+        info "Installing matching Flatpak runtime: $NV_VER_FLAT"
+
+        sudo flatpak install -y --noninteractive flathub \
+            "org.freedesktop.Platform.GL.nvidia-${NV_VER_FLAT}" 2>/dev/null || warn "Failed to install GL runtime"
+        sudo flatpak install -y --noninteractive flathub \
+            "org.freedesktop.Platform.GL32.nvidia-${NV_VER_FLAT}" 2>/dev/null || warn "Failed to install GL32 runtime"
+    else
+        warn "NVIDIA GPU detected but driver version could not be determined."
+        warn "Install Flatpak runtime manually after reboot:"
+        warn "  flatpak install flathub org.freedesktop.Platform.GL.nvidia-<version>"
+    fi
+fi
+
+# ───────────────────────────────
 # Yandex Browser
+# ───────────────────────────────
+
 if get_section "apt" | grep -qx "yandex-browser-stable"; then
     if ! command -v yandex-browser &>/dev/null && ! command -v yandex-browser-stable &>/dev/null; then
         info "Installing Yandex Browser..."
@@ -120,7 +238,10 @@ if get_section "apt" | grep -qx "yandex-browser-stable"; then
     fi
 fi
 
+# ───────────────────────────────
 # VSCode
+# ───────────────────────────────
+
 if ! command -v code &>/dev/null; then
     info "Installing VSCode..."
     wget -qO- https://packages.microsoft.com/keys/microsoft.asc | \
@@ -131,13 +252,15 @@ if ! command -v code &>/dev/null; then
     sudo apt-get install -y code || warn "VSCode install failed"
 fi
 
-# Wireless
+# ───────────────────────────────
+# Network & Bluetooth
+# ───────────────────────────────
+
 sudo rfkill unblock wifi all 2>/dev/null || true
 if rfkill list wifi 2>/dev/null | grep -q "Hard blocked: yes"; then
     warn "Wi-Fi hard blocked — unblock manually (Fn key or switch)."
 fi
 
-# NetworkManager cleanup
 if [ -f /etc/network/interfaces ]; then
     sudo sed -i -e '/^[[:space:]]*auto[[:space:]]*wl/d' \
         -e '/^[[:space:]]*iface[[:space:]]*wl/d' \
@@ -160,10 +283,16 @@ if [ -f /etc/NetworkManager/NetworkManager.conf ]; then
     fi
 fi
 
+# ───────────────────────────────
 # User groups
+# ───────────────────────────────
+
 sudo usermod -aG netdev,video "$USER" 2>/dev/null || true
 
-# Polkit: combine NetworkManager + power into one file
+# ───────────────────────────────
+# Polkit rules
+# ───────────────────────────────
+
 sudo mkdir -p /etc/polkit-1/rules.d
 sudo tee /etc/polkit-1/rules.d/51-local.rules >/dev/null <<'EOF'
 polkit.addRule(function(action, subject) {
@@ -188,7 +317,10 @@ sudo systemctl restart NetworkManager 2>/dev/null || true
 sudo nmcli general reload 2>/dev/null || true
 nmcli radio wifi on 2>/dev/null || true
 
+# ───────────────────────────────
 # Symlinks
+# ───────────────────────────────
+
 mkdir -p "$HOME/.config"
 
 backup_and_link() {
@@ -216,7 +348,10 @@ if [ -f "$DOTFILES_DIR/.config/picom.conf" ]; then
     backup_and_link "$DOTFILES_DIR/.config/picom.conf" "$HOME/.config/picom.conf"
 fi
 
+# ───────────────────────────────
 # Oh My Zsh + autosuggestions
+# ───────────────────────────────
+
 if [ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
     info "Installing Oh My Zsh..."
@@ -230,10 +365,12 @@ if [ ! -f "$ZSH_AUTOSUGGESTIONS_DIR/zsh-autosuggestions.zsh" ]; then
     git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions "$ZSH_AUTOSUGGESTIONS_DIR" || warn "zsh-autosuggestions install failed"
 fi
 
-# Восстановить симлинк ~/.zshrc, т.к. установщик Oh My Zsh его перезаписывает
 backup_and_link "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
 
+# ───────────────────────────────
 # Nerd Font
+# ───────────────────────────────
+
 if ! fc-list | grep -qi "JetBrainsMono.*Nerd"; then
     info "Installing JetBrainsMono Nerd Font..."
     mkdir -p "$FONT_DIR"
@@ -244,7 +381,10 @@ if ! fc-list | grep -qi "JetBrainsMono.*Nerd"; then
     fc-cache -fv "$FONT_DIR" >/dev/null 2>&1
 fi
 
-# Xwrapper config for greetd + startx compatibility
+# ───────────────────────────────
+# Xwrapper config
+# ───────────────────────────────
+
 if [ -f /etc/X11/Xwrapper.config ]; then
     sudo sed -i 's/^allowed_users=.*/allowed_users=anybody/' /etc/X11/Xwrapper.config
     if ! grep -q '^needs_root_rights' /etc/X11/Xwrapper.config; then
@@ -254,17 +394,25 @@ if [ -f /etc/X11/Xwrapper.config ]; then
     fi
 fi
 
-# Ensure .xinitrc is executable
 chmod +x "$HOME/.xinitrc"
 
+# ───────────────────────────────
 # Shell
+# ───────────────────────────────
+
 [ "$SHELL" != "$(which zsh)" ] && chsh -s "$(which zsh)"
 
+# ───────────────────────────────
 # Services
+# ───────────────────────────────
+
 sudo systemctl enable --now bluetooth 2>/dev/null || true
 sudo systemctl enable --now NetworkManager 2>/dev/null || true
 
+# ───────────────────────────────
 # Display manager (greetd + tuigreet)
+# ───────────────────────────────
+
 if command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; then
     info "Configuring greetd..."
 
@@ -293,14 +441,12 @@ EOF
     sudo systemctl set-default graphical.target 2>/dev/null || true
     sudo systemctl enable greetd.service 2>/dev/null || true
 
-    # Fix Intel AX210 Bluetooth firmware load error (-19)
     if ! grep -q "enable_autosuspend=0" /etc/modprobe.d/btusb.conf 2>/dev/null; then
         info "Fixing Bluetooth autosuspend for AX210..."
         echo "options btusb enable_autosuspend=0" | sudo tee /etc/modprobe.d/btusb.conf >/dev/null
         sudo update-initramfs -u 2>/dev/null || warn "update-initramfs failed — reboot required for BT fix."
     fi
 
-    # Hide kernel messages from greetd TTY
     info "Hiding kernel messages from greetd console..."
     sudo tee /etc/systemd/system/greetd-quiet-console.service >/dev/null <<'EOF'
 [Unit]
@@ -319,7 +465,21 @@ EOF
     sudo systemctl enable greetd-quiet-console.service 2>/dev/null || true
 fi
 
+# ───────────────────────────────
+# Summary
+# ───────────────────────────────
+
 echo ""
 echo -e "${GREEN}============================================${NC}"
-echo -e "${GREEN}Done! Reboot to enter greetd → i3.${NC}"
+echo -e "${GREEN}Done!${NC}"
+echo -e "  Form factor: ${GREEN}$FORMFACTOR${NC}"
+echo -e "  GPU vendor:  ${GREEN}$GPU${NC}"
+if [ "$GPU" = "nvidia" ]; then
+    echo -e "  NVIDIA driver: ${GREEN}$(get_nvidia_driver_version)${NC}"
+fi
+echo -e "${GREEN}============================================${NC}"
+echo -e "${GREEN}Reboot to enter greetd → i3.${NC}"
+if [ "$GPU" = "nvidia" ]; then
+    echo -e "${YELLOW}NVIDIA: nouveau is blacklisted, reboot required.${NC}"
+fi
 echo -e "${GREEN}============================================${NC}"
