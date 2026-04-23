@@ -202,6 +202,14 @@ if [ -n "$FLATPAK_PKGS" ]; then
     done
 fi
 
+# Grant Telegram access to home directory (Flatpak sandbox workaround)
+if flatpak list --app 2>/dev/null | grep -q "org.telegram.desktop"; then
+    info "Granting Telegram Flatpak access to home directory..."
+    flatpak override --user --filesystem=home org.telegram.desktop 2>/dev/null || \
+        sudo flatpak override --filesystem=home org.telegram.desktop 2>/dev/null || \
+        warn "Failed to grant Telegram home directory access"
+fi
+
 # Auto-install matching NVIDIA Flatpak runtime
 if [ "$GPU" = "nvidia" ]; then
     NV_VER=$(get_nvidia_driver_version)

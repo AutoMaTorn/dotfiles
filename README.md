@@ -212,3 +212,9 @@ modules-right = tray xkeyboard battery pulseaudio memory bluetooth network date
 ```i3
 bindsym $super+d exec discord
 ```
+
+## Примечания
+
+### Flatpak Telegram и доступ к файлам
+
+Telegram устанавливается через Flatpak с ограниченным доступом к файловой системе. `install.sh` автоматически выдаёт приложению доступ ко всей домашней директории через `flatpak override --filesystem=home`, чтобы можно было прикреплять файлы из любой папки.
