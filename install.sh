@@ -123,6 +123,15 @@ if [ -n "$APT_PKGS" ]; then
 fi
 
 # ───────────────────────────────
+# Enable D-Bus and portal services
+# ───────────────────────────────
+
+info "Enabling D-Bus and xdg-desktop-portal services..."
+systemctl --user enable dbus.service 2>/dev/null || true
+systemctl --user enable xdg-desktop-portal.service 2>/dev/null || true
+systemctl --user enable xdg-desktop-portal-gtk.service 2>/dev/null || true
+
+# ───────────────────────────────
 # GPU driver setup (auto-detected)
 # ───────────────────────────────
 

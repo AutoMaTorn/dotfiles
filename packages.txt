@@ -48,6 +48,10 @@ jq
 x11-xkb-utils
 thunar
 thunar-volman
+tumbler
+xdg-desktop-portal
+xdg-desktop-portal-gtk
+dbus-user-session
 gvfs
 gvfs-backends
 ranger
