@@ -184,6 +184,24 @@ if [ "$FORMFACTOR" = "laptop" ]; then
     if command -v tlp &>/dev/null; then
         sudo systemctl enable --now tlp 2>/dev/null || true
     fi
+
+    # Install touchpad X11 config
+    if [ -f "$DOTFILES_DIR/.config/xorg/40-libinput-touchpad.conf" ]; then
+        sudo mkdir -p /etc/X11/xorg.conf.d
+        sudo cp "$DOTFILES_DIR/.config/xorg/40-libinput-touchpad.conf" /etc/X11/xorg.conf.d/
+        info "Touchpad X11 config installed."
+    fi
+
+    # Install Touchegg for touchpad gestures (swipe back/forward)
+    if ! command -v touchegg &>/dev/null; then
+        info "Installing Touchegg..."
+        tmpdir=$(mktemp -d)
+        wget -q "https://github.com/JoseExposito/touchegg/releases/download/2.0.18/touchegg_2.0.18_amd64.deb" -O "$tmpdir/touchegg.deb" || warn "Failed to download Touchegg"
+        if [ -f "$tmpdir/touchegg.deb" ]; then
+            sudo apt-get install -y "$tmpdir/touchegg.deb" || warn "Touchegg install failed"
+        fi
+        rm -rf "$tmpdir"
+    fi
 fi
 
 # ───────────────────────────────
@@ -355,6 +373,7 @@ for pair in \
     "$DOTFILES_DIR/.config/kitty:$HOME/.config/kitty" \
     "$DOTFILES_DIR/.config/fastfetch:$HOME/.config/fastfetch" \
     "$DOTFILES_DIR/.config/wallpapers:$HOME/.config/wallpapers" \
+    "$DOTFILES_DIR/.config/touchegg:$HOME/.config/touchegg" \
     "$DOTFILES_DIR/zsh/.zshrc:$HOME/.zshrc" \
     "$DOTFILES_DIR/.xinitrc:$HOME/.xinitrc"; do
     IFS=':' read -r src dst <<< "$pair"
@@ -442,6 +461,12 @@ fi
 
 sudo systemctl enable --now bluetooth 2>/dev/null || true
 sudo systemctl enable --now NetworkManager 2>/dev/null || true
+
+# Enable Touchegg gesture daemon
+if command -v touchegg &>/dev/null; then
+    systemctl --user enable touchegg.service 2>/dev/null || true
+    systemctl --user start touchegg.service 2>/dev/null || true
+fi
 
 # ───────────────────────────────
 # Display manager (greetd + tuigreet)

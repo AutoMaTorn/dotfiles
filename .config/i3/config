@@ -1,7 +1,7 @@
 set $super Mod4
 set $alt Mod1
 
-font pango:monospace 14
+font pango:monospace 16
 floating_modifier $super
 
 exec --no-startup-id dbus-update-activation-environment --all

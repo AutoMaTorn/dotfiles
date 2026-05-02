@@ -1,0 +1,9 @@
+! ============================================
+! X11 DPI and Font Settings
+! ============================================
+
+Xft.dpi: 144
+Xft.antialias: true
+Xft.hinting: true
+Xft.hintstyle: hintslight
+Xft.rgba: rgb

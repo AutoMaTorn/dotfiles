@@ -82,5 +82,6 @@ com.discordapp.Discord
 tlp
 powertop
 acpi-support
+xserver-xorg-input-libinput
 
 [manual]
