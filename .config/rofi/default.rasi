@@ -1,5 +1,5 @@
 configuration {
-  font: "JetBrainsMono Nerd 14";
+  font: "JetBrainsMono Nerd 12";
   kb-row-up: "Up,Alt+k";
   kb-row-down: "Down,Alt+j";
   kb-mode-next: "Tab";
@@ -21,7 +21,7 @@ configuration {
 
 window {
   transparency: "real";
-  width: 650px;
+  width: 500px;
 }
 
 mainbox {
@@ -35,12 +35,12 @@ inputbar {
 
 prompt {
   background-color: inherit;
-  padding: 16px;
+  padding: 12px;
 }
 
 entry {
   background-color: inherit;
-  padding: 16px 4px;
+  padding: 12px 3px;
 }
 
 listview {
@@ -51,7 +51,7 @@ element {
   children: [element-icon, element-text];
   text-color: #ededed;
   background-color: #101010;
-  padding: 10px 14px 10px 14px;
+  padding: 8px 10px 8px 10px;
 }
 
 element run {
@@ -59,8 +59,8 @@ element run {
   text-color: #ededed;
 }
 element-icon {
-  padding: 12px 12px;
-  size: 24px;
+  padding: 10px 10px;
+  size: 20px;
 }
 
 element-icon selected {
@@ -68,7 +68,7 @@ element-icon selected {
 }
 
 element-text {
-  padding: 12px 0;
+  padding: 10px 0;
   text-color: inherit;
 }
 

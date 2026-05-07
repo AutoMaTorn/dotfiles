@@ -1,14 +1,5 @@
 #!/bin/sh
 
-# Load X resources (DPI, fonts)
-if [ -f "$HOME/.Xresources" ]; then
-    xrdb -merge "$HOME/.Xresources"
-fi
-
-# Scaling for GTK and Qt applications
-export GDK_DPI_SCALE=1.5
-export QT_SCALE_FACTOR=1.5
-
 # Set maximum available refresh rate for the PREFERRED (native) resolution
 # of each connected display. The preferred mode is marked with '+' in xrandr.
 for output in $(xrandr | awk '/ connected/ {print $1}'); do
