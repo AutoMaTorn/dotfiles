@@ -4,6 +4,7 @@ set $alt Mod1
 font pango:monospace 14
 floating_modifier $super
 
+exec_always --no-startup-id ~/.config/i3/autodisplay.sh
 exec --no-startup-id dbus-update-activation-environment --all
 exec --no-startup-id systemctl --user start xdg-desktop-portal xdg-desktop-portal-gtk
 exec_always --no-startup-id feh --bg-fill ~/dotfiles/.config/wallpapers/wallpaper.jpeg
