@@ -8,108 +8,61 @@
     },
     "source": "$HOME/.config/fastfetch/plant.txt",
     "padding": {
-      "top": 2,
-      "right": 5
+      "top": 1,
+      "right": 4
     }
   },
   "display": {
-    "separator": " ▸ "
+    "separator": "  "
   },
   "modules": [
     {
       "type": "title",
-      "format": "{#38;2;195;239;237}{1}{#38;2;147;147;147}@{#38;2;195;239;237}{2}"
+      "format": "{#38;2;195;239;237}{1}{#}@{#38;2;195;239;237}{2}"
     },
     "break",
     {
-      "type": "custom",
-      "format": "\u001b[38;2;103;103;103m┌──────────────────────────────────────────────────────────┐"
-    },
-    {
       "type": "os",
-      "key": "",
-      "keyColor": "38;2;195;239;237"
-    },
-    {
-      "type": "kernel",
-      "key": "",
-      "keyColor": "38;2;195;239;237"
-    },
-    {
-      "type": "de",
-      "key": "",
-      "keyColor": "38;2;183;183;183"
+      "key": "os",
+      "keyColor": "38;2;147;147;147"
     },
     {
       "type": "wm",
-      "key": "",
-      "keyColor": "38;2;183;183;183"
+      "key": "wm",
+      "keyColor": "38;2;147;147;147"
     },
     {
       "type": "packages",
-      "key": "",
+      "key": "pkgs",
       "keyColor": "38;2;147;147;147"
-    },
-    {
-      "type": "custom",
-      "format": "\u001b[38;2;103;103;103m├───────────────────────────────────────────────────────────┤"
-    },
-    {
-      "type": "memory",
-      "key": "",
-      "keyColor": "38;2;195;239;237"
-    },
-    {
-      "type": "cpu",
-      "key": "",
-      "keyColor": "38;2;195;239;237"
     },
     {
       "type": "gpu",
-      "key": "",
-      "keyColor": "38;2;183;183;183"
-    },
-    {
-      "type": "swap",
-      "key": "",
-      "keyColor": "38;2;183;183;183"
-    },
-    {
-      "type": "disk",
-      "key": "",
+      "key": "gpu",
       "keyColor": "38;2;147;147;147"
     },
     {
-      "type": "battery",
-      "key": "",
+      "type": "memory",
+      "key": "ram",
       "keyColor": "38;2;147;147;147"
     },
     {
-      "type": "custom",
-      "format": "\u001b[38;2;103;103;103m├───────────────────────────────────────────────────────────┤"
+      "type": "cpu",
+      "key": "cpu",
+      "keyColor": "38;2;147;147;147"
     },
     {
       "type": "uptime",
-      "key": "",
-      "keyColor": "38;2;195;239;237"
+      "key": "up",
+      "keyColor": "38;2;147;147;147"
     },
-    {
-      "type": "terminal",
-      "key": "",
-      "keyColor": "38;2;195;239;237"
-    },
-    {
-      "type": "custom",
-      "format": "\u001b[38;2;103;103;103m└──────────────────────────────────────────────────────────┘"
-    },
+    "break",
     {
       "type": "colors",
-      "paddingLeft": 24,
       "symbol": "circle",
       "block": {
-        "width": 10
+        "width": 2
       }
-    },
-    "break"
+    }
   ]
 }
