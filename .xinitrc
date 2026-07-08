@@ -7,7 +7,7 @@ if [ -x ~/.config/i3/autodisplay.sh ]; then
 fi
 
 # Touchpad settings (fallback via xinput for immediate effect)
-if command -v xinput &>/dev/null; then
+if command -v xinput >/dev/null 2>&1; then
     for id in $(xinput list | grep -iE 'touchpad|synaptics' | sed -n 's/.*id=\([0-9]*\).*/\1/p'); do
         xinput set-prop "$id" "libinput Tapping Enabled" 1 2>/dev/null || true
         xinput set-prop "$id" "libinput Tapping Drag Enabled" 1 2>/dev/null || true
@@ -18,7 +18,7 @@ if command -v xinput &>/dev/null; then
 fi
 
 # Start Touchegg gesture daemon (fallback if systemd user session didn't start it)
-if command -v touchegg &>/dev/null; then
+if command -v touchegg >/dev/null 2>&1 && ! pgrep -x touchegg >/dev/null 2>&1; then
     touchegg &
 fi
 

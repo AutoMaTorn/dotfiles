@@ -147,8 +147,11 @@ options nouveau modeset=0" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf >/d
         fi
 
         if ! grep -q "nouveau.modeset=0" /etc/default/grub; then
-            sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nouveau.modeset=0"/' /etc/default/grub
-            sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nouveau.modeset=0"/' /etc/default/grub
+            if grep -q '^GRUB_CMDLINE_LINUX_DEFAULT=""' /etc/default/grub; then
+                sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="nouveau.modeset=0"/' /etc/default/grub
+            else
+                sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\([^"]*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 nouveau.modeset=0"/' /etc/default/grub
+            fi
         fi
 
         sudo update-grub

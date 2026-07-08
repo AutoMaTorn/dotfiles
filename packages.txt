@@ -72,6 +72,9 @@ fonts-noto-color-emoji
 yandex-browser-stable
 fastfetch
 
+# Installed by install.sh from vendor apt repos (handled separately, not via this list):
+#   code (VSCode) — packages.microsoft.com
+
 [flatpak]
 org.telegram.desktop
 com.spotify.Client

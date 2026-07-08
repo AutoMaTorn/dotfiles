@@ -9,7 +9,10 @@ else
     echo "[zsh] Oh My Zsh не найден. Запустите install.sh для установки."
 fi
 
-fastfetch
+# Show system info only in interactive shells, if fastfetch is installed
+if [[ -o interactive ]] && command -v fastfetch >/dev/null 2>&1; then
+    fastfetch
+fi
 
 export PATH="$PATH:/sbin:/usr/sbin"
 

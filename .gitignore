@@ -1,0 +1,10 @@
+# Touchegg runtime lock (created when the daemon starts)
+.config/touchegg/.touchegg*.lock
+
+# Editor / OS cruft
+*.swp
+*~
+.DS_Store
+
+# Backups created by install.sh's backup_and_link
+*.backup.*
