@@ -1,0 +1,22 @@
+/* sponux appearance. Layered on top of the bundled stylesheet, so you only
+   write what you want to change — including the variables it defines.
+
+   The bundled sheet is dark and drives everything from these variables:
+     --sponux-font        family name; unset = the desktop's UI font
+     --sponux-font-size   size of a result title; everything else scales
+     --sponux-bg  --sponux-fg  --sponux-muted  --sponux-dim  --sponux-accent
+     --sponux-line  --sponux-border  --sponux-shadow
+     --sponux-radius  --sponux-row-radius
+
+   Selectors, for anything the variables do not reach:
+     .sponux-card  .sponux-search  .sponux-sep  .sponux-results
+     .sponux-row   .sponux-title   .sponux-subtitle  .sponux-badge
+     .sponux-hints
+*/
+
+:root {
+    /* "JetBrains Mono" does not resolve on this machine — only the Nerd Font
+       build is installed. Check a name with: fc-match "JetBrainsMono Nerd Font" */
+    --sponux-font: "JetBrainsMono Nerd Font";
+    --sponux-font-size: 15px;
+}

@@ -12,6 +12,12 @@ exec_always --no-startup-id setxkbmap -layout us,ru -option 'grp:alt_shift_toggl
 exec --no-startup-id picom
 exec --no-startup-id nmcli general reload
 exec --no-startup-id nmcli radio wifi on
+# Start the sponux launcher daemon so $super+d opens in ~20 ms instead of
+# cold-starting Python (~420 ms). Nothing appears on screen until the key
+# is pressed. exec_always, not exec: it costs nothing to run twice — the
+# daemon checks the session bus and exits if one is already up — and this
+# way an i3 restart brings it back after a Ctrl+Q.
+exec_always --no-startup-id sponux --daemon
 
 bindsym $super+Return exec kitty
 bindsym $super+space exec --no-startup-id rofi -show drun -no-default-config -config ~/.config/rofi/config.rasi
@@ -20,6 +26,7 @@ bindsym $super+l exec --no-startup-id ~/.config/i3/lock.sh
 bindsym $super+e exec thunar
 bindsym $super+w exec yandex-browser
 bindsym $super+t exec flatpak run org.telegram.desktop
+bindsym $super+d exec --no-startup-id sponux
 
 bindsym XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
 bindsym XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%

@@ -1,0 +1,106 @@
+# sponux — behaviour. Appearance lives in style.css, next to this file.
+#
+# Everything here is optional — delete a line to get the default behaviour
+# back. Edits apply the next time you open the launcher; the daemon does not
+# need restarting.
+
+# ---------------------------------------------------------------------------
+# Which application opens what. Rules are tried most specific first:
+#     [open.name] -> [open.extension] -> [open.mime] -> directory / file
+#     -> default
+# The first match wins; anything unmatched is opened by the desktop's own
+# default application, which is why "file" is left unset below — setting it
+# would send videos, archives and binaries to the editor as well.
+# ---------------------------------------------------------------------------
+[open]
+directory = "thunar"
+
+# By file name. This is what reaches the config files that have no extension
+# and that GIO cannot type either.
+[open.name]
+".*rc" = "code"
+"config" = "code"        # ~/.config/i3/config, ~/.ssh/config, .git/config
+"README*" = "code"
+".gitconfig" = "code"
+".gitignore" = "code"
+".editorconfig" = "code"
+".env" = "code"
+"Makefile" = "code"
+"Dockerfile" = "code"
+"*.tar.*" = "thunar"
+
+# By extension. GIO types plenty of code as something other than text/*, so
+# the ones that matter are listed here rather than left to the mime rules:
+# JSON is application/json, a shell script application/x-shellscript, and a
+# .ts file is reported as Qt Linguist.
+[open.extension]
+exs = "/usr/share/code/code"
+py = "code"
+js = "code"
+ts = "code"
+tsx = "code"
+jsx = "code"
+json = "code"
+toml = "code"
+yaml = "code"
+yml = "code"
+sh = "code"
+bash = "code"
+fish = "code"
+sql = "code"
+ini = "code"
+conf = "code"
+css = "code"
+scss = "code"
+html = "code"
+xml = "code"
+svg = "code"
+rasi = "code"
+
+# By mime type, for everything else that is genuinely text: Rust, Go, C, C++,
+# Markdown, plain text, Makefiles.
+[open.mime]
+"text/*" = "code"
+
+# The path is appended to the command, unless you write {path} yourself:
+#   py = "code --goto {path}:1"
+
+# ---------------------------------------------------------------------------
+# What the file search can find.
+#
+# The defaults skip every hidden directory, which also hides your configs.
+# The three lines below put ~/.config back in while keeping out the browser
+# and editor profiles that live there — they are state, not configuration,
+# and they alone are 7100 of the 7800 entries under ~/.config.
+#
+# Measured on this machine: 618 entries with the defaults, 7821 with a bare
+# include of ~/.config, 672 as configured here. Delete the section to go back.
+# ---------------------------------------------------------------------------
+[index]
+include = ["~/.config", "~/.local/share/applications"]
+exclude = [
+    "~/.config/yandex-browser/*",
+    "~/.config/BraveSoftware/*",
+    "~/.config/Code/*",
+]
+
+# Other knobs, all optional:
+#   roots = ["~", "/etc"]     where to look at all
+#   hidden = true             index every dotfile (91743 entries here)
+#   skip = ["Steam"]          directory names pruned anywhere, added to the
+#                             built-in list (.git, node_modules, .cache, …)
+#   unskip = ["target"]       take a name back off that built-in list
+#   watch = true              keep the index current with inotify
+#   interval = 900            seconds between full rebuilds; 0 disables
+#   max_files = 200000        caps against a pathological home directory
+#   max_watches = 8192
+
+# ---------------------------------------------------------------------------
+# Ranking.
+# ---------------------------------------------------------------------------
+[rank]
+# Rank what you actually open above what merely matches as well. The weight is
+# the most a result can gain from its history; it is capped low enough that a
+# clearly better text match still wins.
+# frecency = true
+# weight = 25

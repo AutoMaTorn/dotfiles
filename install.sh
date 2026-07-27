@@ -377,6 +377,7 @@ for pair in \
     "$DOTFILES_DIR/.config/fastfetch:$HOME/.config/fastfetch" \
     "$DOTFILES_DIR/.config/wallpapers:$HOME/.config/wallpapers" \
     "$DOTFILES_DIR/.config/touchegg:$HOME/.config/touchegg" \
+    "$DOTFILES_DIR/.config/sponux:$HOME/.config/sponux" \
     "$DOTFILES_DIR/zsh/.zshrc:$HOME/.zshrc" \
     "$DOTFILES_DIR/.xinitrc:$HOME/.xinitrc"; do
     IFS=':' read -r src dst <<< "$pair"
