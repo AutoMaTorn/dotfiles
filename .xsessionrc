@@ -1,0 +1,34 @@
+# Sourced by /etc/X11/Xsession.d/40x11-common_xsessionrc, i.e. before
+# 70im-config_launch — which is what makes this the right place for the fix.
+#
+# Debian's im-config hook starts ibus-daemon for every X session and exports
+# GTK_IM_MODULE=ibus / QT_IM_MODULE=ibus / XMODIFIERS=@im=ibus. Under GNOME
+# that is wanted; under i3 it is a *second* keyboard-layout manager fighting
+# the first:
+#
+#   - ibus owns org.gnome.desktop.input-sources and re-runs setxkbmap with its
+#     own active engine first, so the `us,ru` order that i3 sets with
+#     `setxkbmap -layout us,ru` silently becomes `ru,us` mid-session and
+#     grp:alt_shift_toggle starts toggling out of sync with the indicator.
+#   - ibus grabs <Super>space for "next input method", which collides with
+#     i3's `bindsym $super+space exec rofi`.
+#
+# 70im-config_launch bails out entirely when any *_IM_MODULE variable is
+# already set ("If already tweaked, keep hands off"), and im-launch then just
+# execs the session without starting a daemon. So exporting plain X input
+# modules here is enough to keep ibus out of i3 — no daemon, no layout fight.
+#
+# Scoped to the i3 session so logging into GNOME still gets its normal input
+# method. GDM exports DESKTOP_SESSION/XDG_CURRENT_DESKTOP before Xsession runs.
+
+case "$DESKTOP_SESSION:$XDG_CURRENT_DESKTOP" in
+    *i3*)
+        XMODIFIERS="@im=none"
+        GTK_IM_MODULE="gtk-im-context-simple"
+        QT_IM_MODULE="simple"
+        CLUTTER_IM_MODULE="none"
+        SDL_IM_MODULE="none"
+        export XMODIFIERS GTK_IM_MODULE QT_IM_MODULE
+        export CLUTTER_IM_MODULE SDL_IM_MODULE
+        ;;
+esac

@@ -1,25 +1,12 @@
 #!/bin/sh
-
-# Auto-configure displays: dual-monitor mode when HDMI is connected,
-# single-monitor mode otherwise.
-if [ -x ~/.config/i3/autodisplay.sh ]; then
-    ~/.config/i3/autodisplay.sh
-fi
-
-# Touchpad settings (fallback via xinput for immediate effect)
-if command -v xinput >/dev/null 2>&1; then
-    for id in $(xinput list | grep -iE 'touchpad|synaptics' | sed -n 's/.*id=\([0-9]*\).*/\1/p'); do
-        xinput set-prop "$id" "libinput Tapping Enabled" 1 2>/dev/null || true
-        xinput set-prop "$id" "libinput Tapping Drag Enabled" 1 2>/dev/null || true
-        xinput set-prop "$id" "libinput Natural Scrolling Enabled" 0 2>/dev/null || true
-        xinput set-prop "$id" "libinput Scroll Method Enabled" 0 1 0 2>/dev/null || true
-        xinput set-prop "$id" "libinput Disable While Typing Enabled" 1 2>/dev/null || true
-    done
-fi
-
-# Start Touchegg gesture daemon (fallback if systemd user session didn't start it)
-if command -v touchegg >/dev/null 2>&1 && ! pgrep -x touchegg >/dev/null 2>&1; then
-    touchegg &
-fi
+# Only read when X is started with startx/xinit (the greetd + tuigreet path).
+# Under a display manager — GDM here — this file is never sourced: the DM runs
+# /etc/X11/Xsession and then execs the command from /usr/share/xsessions/i3.desktop.
+#
+# So nothing session-critical may live here, or it breaks the moment you log in
+# through a DM. Per-session setup belongs in ~/.config/i3/startup.sh, which the
+# i3 config runs itself and which therefore works under both launchers.
+# Environment that has to exist *before* the session starts belongs in
+# ~/.xsessionrc (read by /etc/X11/Xsession.d/40x11-common_xsessionrc).
 
 exec i3

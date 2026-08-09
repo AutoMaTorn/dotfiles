@@ -5,6 +5,9 @@ font pango:monospace 14
 floating_modifier $super
 
 exec_always --no-startup-id ~/.config/i3/autodisplay.sh
+# Touchpad + Touchegg client. Lives in a script i3 runs, not in ~/.xinitrc,
+# because logging in through GDM never sources .xinitrc — see startup.sh.
+exec_always --no-startup-id ~/.config/i3/startup.sh
 exec --no-startup-id dbus-update-activation-environment --all
 exec --no-startup-id systemctl --user start xdg-desktop-portal xdg-desktop-portal-gtk
 exec_always --no-startup-id feh --bg-fill ~/.config/wallpapers/wallpaper.jpeg

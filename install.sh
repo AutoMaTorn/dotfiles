@@ -378,8 +378,10 @@ for pair in \
     "$DOTFILES_DIR/.config/wallpapers:$HOME/.config/wallpapers" \
     "$DOTFILES_DIR/.config/touchegg:$HOME/.config/touchegg" \
     "$DOTFILES_DIR/.config/sponux:$HOME/.config/sponux" \
+    "$DOTFILES_DIR/.config/xdg-desktop-portal:$HOME/.config/xdg-desktop-portal" \
     "$DOTFILES_DIR/zsh/.zshrc:$HOME/.zshrc" \
-    "$DOTFILES_DIR/.xinitrc:$HOME/.xinitrc"; do
+    "$DOTFILES_DIR/.xinitrc:$HOME/.xinitrc" \
+    "$DOTFILES_DIR/.xsessionrc:$HOME/.xsessionrc"; do
     IFS=':' read -r src dst <<< "$pair"
     backup_and_link "$src" "$dst"
 done
@@ -444,6 +446,36 @@ else
 fi
 
 chmod +x "$HOME/.xinitrc"
+chmod +x "$DOTFILES_DIR/.config/i3/startup.sh"
+
+# ───────────────────────────────
+# Keyboard layout (US + Russian)
+# ───────────────────────────────
+
+# i3 runs `setxkbmap -layout us,ru` at startup, but that is a one-shot applied
+# to the running server. Xorg re-applies its own InputClass config whenever an
+# input device is (re)probed — a USB keyboard plugged in, a monitor hotplug
+# that re-adds devices, a suspend/resume — and /etc/default/keyboard says
+# XKBLAYOUT="us", so the ru group silently disappears mid-session. Writing the
+# layout into the InputClass makes us,ru the default every device inherits.
+
+info "Configuring keyboard layout (us,ru + alt+shift toggle)..."
+sudo tee /etc/X11/xorg.conf.d/00-keyboard.conf >/dev/null <<'EOF'
+Section "InputClass"
+    Identifier "system-keyboard"
+    MatchIsKeyboard "on"
+    Option "XkbModel" "pc105"
+    Option "XkbLayout" "us,ru"
+    Option "XkbOptions" "grp:alt_shift_toggle"
+EndSection
+EOF
+
+# Keep the console/debconf source of truth in sync, so `dpkg-reconfigure
+# keyboard-configuration` and the TTYs agree with X instead of fighting it.
+if [ -f /etc/default/keyboard ]; then
+    sudo sed -i 's/^XKBLAYOUT=.*/XKBLAYOUT="us,ru"/' /etc/default/keyboard
+    sudo sed -i 's/^XKBOPTIONS=.*/XKBOPTIONS="grp:alt_shift_toggle"/' /etc/default/keyboard
+fi
 
 # ───────────────────────────────
 # Shell
@@ -473,10 +505,15 @@ if command -v touchegg &>/dev/null; then
 fi
 
 # ───────────────────────────────
-# Display manager (greetd + tuigreet)
+# Display manager (greetd + tuigreet) — opt-in: USE_GREETD=1 ./install.sh
 # ───────────────────────────────
 
-if command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; then
+# Opt-in, not "whenever greetd happens to be installed". GNOME pulls in gdm3,
+# and gdm3 owns /etc/systemd/system/display-manager.service; enabling greetd
+# underneath it leaves two display managers racing for vt2 at boot. It also
+# switches login to startx, which stops GNOME from being selectable at all.
+# Set USE_GREETD=1 only on a machine where i3 is the only session.
+if [ "${USE_GREETD:-0}" = "1" ] && { command -v greetd &>/dev/null || dpkg -l greetd &>/dev/null; }; then
     info "Configuring greetd..."
 
     if id -u _greetd &>/dev/null; then GREETD_USER="_greetd"
@@ -499,6 +536,11 @@ EOF
 
     sudo systemctl disable lightdm 2>/dev/null || true
     sudo systemctl stop lightdm 2>/dev/null || true
+    # gdm.service is a static unit, so `disable` alone is a no-op — the active
+    # display manager is whatever /etc/systemd/system/display-manager.service
+    # points at. Repoint it, or gdm keeps winning the boot.
+    sudo systemctl stop gdm 2>/dev/null || true
+    sudo ln -sf /lib/systemd/system/greetd.service /etc/systemd/system/display-manager.service
     sudo systemctl disable getty@tty2.service 2>/dev/null || true
     sudo systemctl stop getty@tty2.service 2>/dev/null || true
     sudo systemctl set-default graphical.target 2>/dev/null || true
